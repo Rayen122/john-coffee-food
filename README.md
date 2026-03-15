@@ -82,8 +82,6 @@ L'application fonctionne entièrement hors ligne avec IndexedDB. Firebase est op
 **Pour configurer Firebase:**
 1. Copiez `firebase.config.example.js` vers `firebase.config.js`
 2. Ajoutez vos identifiants Firebase
-3. Consultez [CONFIGURATION.md](CONFIGURATION.md) pour les détails
-
 **Note**: Les fichiers de configuration Firebase sont exclus du repository pour des raisons de sécurité.
 
 ## 📱 Responsive Design
