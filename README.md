@@ -72,49 +72,6 @@ cafe-app/
 └── README.md              # Ce fichier
 ```
 
-Voir [README_STRUCTURE.md](README_STRUCTURE.md) pour plus de détails sur l'organisation du code.
-
-## 🚦 Installation et Configuration
-
-### Installation Rapide
-
-1. **Cloner le repository**
-```bash
-git clone https://github.com/votre-username/john-coffee-food.git
-cd john-coffee-food
-```
-
-2. **Lancer l'application**
-   
-   Ouvrez simplement `index.html` dans votre navigateur, ou utilisez un serveur local :
-   
-   ```bash
-   # Avec Python
-   python -m http.server 8000
-   
-   # Avec Node.js (http-server)
-   npx http-server
-   
-   # Avec PHP
-   php -S localhost:8000
-   ```
-
-3. **Accéder à l'application**
-   
-   Ouvrez votre navigateur à `http://localhost:8000`
-
-### Configuration Complète
-
-Pour une configuration détaillée incluant Firebase, sécurité et personnalisation, consultez le [Guide de Configuration](CONFIGURATION.md).
-
-## 🔐 Connexion par Défaut
-
-**Administrateur:**
-- Identifiant: `john`
-- Mot de passe: `john`
-
-⚠️ **Important**: Changez ces identifiants dans `js/auth.js` avant de déployer en production!
-
 ## 🔥 Firebase (Optionnel)
 
 L'application fonctionne entièrement hors ligne avec IndexedDB. Firebase est optionnel pour:
@@ -174,19 +131,6 @@ Si Firebase est configuré, les données sont synchronisées automatiquement.
 - Export PDF de la recette du jour
 - Export PDF des statistiques
 
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à :
-1. Fork le projet
-2. Créer une branche (`git checkout -b feature/amelioration`)
-3. Commit vos changements (`git commit -m 'Ajout d'une fonctionnalité'`)
-4. Push vers la branche (`git push origin feature/amelioration`)
-5. Ouvrir une Pull Request
-
-## 📝 License
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
 ## 🙏 Remerciements
 
 - [Firebase](https://firebase.google.com/) pour la base de données cloud
@@ -195,34 +139,5 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 - [Google Fonts](https://fonts.google.com/) pour la typographie Inter
 
 ## 👨‍💻 Auteur
-
+*
 Développé avec ❤️ pour la gestion de cafés et restaurants
-
-## ⭐ Contribuer
-
-Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour plus de détails.
-
-## 🐛 Signaler un Bug
-
-Si vous trouvez un bug, veuillez ouvrir une [issue](https://github.com/votre-username/john-coffee-food/issues) avec :
-- Description du problème
-- Étapes pour reproduire
-- Navigateur et version
-- Captures d'écran si possible
-
-## 📞 Support
-
-Pour toute question ou assistance:
-- 📖 Consultez la [Documentation](CONFIGURATION.md)
-- 🐛 Ouvrez une [Issue](https://github.com/votre-username/john-coffee-food/issues)
-- 💬 Démarrez une [Discussion](https://github.com/votre-username/john-coffee-food/discussions)
-
----
-
-**⚠️ Avertissement**: Ce projet est conçu pour un usage professionnel. Assurez-vous de:
-- Changer les identifiants par défaut
-- Sécuriser votre configuration Firebase
-- Tester en environnement de développement avant la production
-- Sauvegarder régulièrement vos données
-
-**Made with ☕ for coffee lovers**
