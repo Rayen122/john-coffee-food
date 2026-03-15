@@ -1,0 +1,34 @@
+<!-- Staff Form Modal -->
+<div class="modal" id="staffFormModal">
+  <div class="modal-content" style="max-width: 420px;">
+    <h3 id="staffFormTitle">👥 Ajouter un serveur</h3>
+    <form id="staffForm" autocomplete="off">
+      <input type="hidden" id="staffFormId">
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="staffFormName"
+          style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Nom
+          complet</label>
+        <input type="text" id="staffFormName" required placeholder="ex: Ahmed Ben Ali"
+          style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+      </div>
+      <div class="form-group" style="margin-bottom: 1rem;">
+        <label for="staffFormUsername"
+          style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Identifiant
+          de connexion</label>
+        <input type="text" id="staffFormUsername" required placeholder="ex: ahmed"
+          style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="staffFormPassword"
+          style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Mot
+          de passe</label>
+        <input type="text" id="staffFormPassword" required placeholder="Mot de passe"
+          style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="staffFormCancel">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>

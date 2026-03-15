@@ -1,0 +1,27 @@
+<!-- Backup Page -->
+<div id="backup-page" class="page">
+  <h2>Sauvegarde des données</h2>
+  <div class="backup-actions">
+    <div class="backup-card">
+      <h3>Exporter les données</h3>
+      <p>Génère un fichier JSON contenant toutes les données.</p>
+      <button type="button" class="btn btn-primary" id="exportDataBtn">Exporter les données</button>
+    </div>
+    <div class="backup-card">
+      <h3>Exporter la recette du jour (PDF)</h3>
+      <p>Génère un fichier PDF avec le récapitulatif de la recette du jour.</p>
+      <button type="button" class="btn btn-primary" id="exportRevenuePdfBtn">📄 Exporter en PDF</button>
+    </div>
+    <div class="backup-card">
+      <h3>Importer les données</h3>
+      <p>Restaurer les données depuis un fichier JSON.</p>
+      <input type="file" id="importFileInput" accept=".json" style="display: none;">
+      <button type="button" class="btn btn-secondary" id="importDataBtn">Choisir un fichier</button>
+    </div>
+    <div class="backup-card backup-danger">
+      <h3>Réinitialiser toutes les données</h3>
+      <p>Supprime toutes les données et repart de zéro.</p>
+      <button type="button" class="btn btn-danger" id="resetDataBtn">Réinitialiser</button>
+    </div>
+  </div>
+</div>

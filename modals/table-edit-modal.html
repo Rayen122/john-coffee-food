@@ -1,0 +1,29 @@
+<!-- Table Edit Modal -->
+<div class="modal" id="tableEditModal">
+  <div class="modal-content" style="max-width: 420px;">
+    <h3 id="tableEditTitle" style="margin-bottom: 1.5rem; font-size: 1.2rem;">✏️ Modifier la Table</h3>
+    <form id="tableEditForm" autocomplete="off">
+      <input type="hidden" id="tableEditId">
+      <input type="hidden" id="tableEditStatus">
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="tableEditName"
+          style="display:block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Nom
+          de la table</label>
+        <input type="text" id="tableEditName" required
+          style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+      </div>
+      <div
+        style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border);">
+        <button type="button" id="deleteSpecificTableBtn"
+          style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:1px solid #ef4444; background:transparent; color:#ef4444; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all 0.2s;">🗑
+          Supprimer</button>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" id="cancelTableEditBtn"
+            style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:1px solid var(--border); background:var(--bg-card); color:var(--text-primary); cursor:pointer; font-weight:500; font-size:0.85rem;">Annuler</button>
+          <button type="submit"
+            style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:none; background:var(--accent); color:#fff; cursor:pointer; font-weight:600; font-size:0.85rem;">Enregistrer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

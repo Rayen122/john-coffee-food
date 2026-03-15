@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Café</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/calendar.css">
+</head>
+
+<body>
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="logo.jpg" alt="John Coffee Food">
+      </div>
+      <h2 class="login-title">John Coffee Food</h2>
+      <p class="login-subtitle">Connectez-vous pour accéder à la gestion</p>
+      <form id="loginForm" autocomplete="off">
+        <div class="login-field">
+          <label for="loginEmail">Identifiant</label>
+          <input type="text" id="loginEmail" placeholder="Votre identifiant" required>
+        </div>
+        <div class="login-field">
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" placeholder="Votre mot de passe" required>
+        </div>
+        <p class="login-error" id="loginError"></p>
+        <button type="submit" class="btn btn-primary login-btn">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="mainApp" style="display:none;">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container" style="width: 140px; height: 140px; margin-bottom: 0.5rem;">
+          <img src="logo.jpg" alt="John Coffee Food" class="sidebar-logo" id="sidebarLogo">
+        </div>
+        <div class="sidebar-user-info" id="sidebarUserInfo"
+          style="margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.8;"></div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-link active" data-page="dashboard">
+          <span class="nav-icon">📊</span>
+          Tableau de bord
+        </a>
+        <a href="#" class="nav-link" data-page="tables">
+          <span class="nav-icon">🪑</span>
+          Tables
+        </a>
+        <a href="#" class="nav-link" data-page="menu">
+          <span class="nav-icon">📋</span>
+          Menu
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="history">
+          <span class="nav-icon">📜</span>
+          Historique
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="revenue">
+          <span class="nav-icon">💰</span>
+          Recette du jour
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="team">
+          <span class="nav-icon">👥</span>
+          Équipe
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="credits">
+          <span class="nav-icon">💳</span>
+          Crédits clients
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="backup">
+          <span class="nav-icon">💾</span>
+          Sauvegarde
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="settings">
+          <span class="nav-icon">⚙️</span>
+          Paramètres
+        </a>
+        <a href="#" class="nav-link admin-only" data-page="notifications">
+          <span class="nav-icon">🔔</span>
+          Notifications
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        </a>
+        <a href="#" class="nav-link" data-page="stats">
+          <span class="nav-icon">📈</span>
+          Statistiques
+        </a>
+      </nav>
+      <div class="sidebar-logout">
+        <button type="button" class="btn-logout" id="logoutBtn">
+          <span class="nav-icon">🚪</span> Déconnexion
+        </button>
+      </div>
+    </aside>
+    <!-- Mobile Header Background -->
+    <div class="mobile-header"></div>
+
+    <main class="main-content">
+      <div id="dashboard-page" class="page active">
+        <h2>Tableau de bord</h2>
+        <div class="dashboard-stats" id="dashboardStats"></div>
+        <div class="dashboard-quick-links" id="dashboardQuickLinks"></div>
+      </div>
+
+      <div id="tables-page" class="page">
+        <div class="page-header-row">
+          <h2>Tables</h2>
+          <div class="page-header-actions" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="addTableBtn">+ Ajouter une table</button>
+            <button type="button" class="btn btn-secondary" id="mergeTablesBtn">🔗 Fusionner</button>
+          </div>
+        </div>
+
+        <!-- Table Edit Modal -->
+        <div class="modal" id="tableEditModal">
+          <div class="modal-content" style="max-width: 420px;">
+            <h3 id="tableEditTitle" style="margin-bottom: 1.5rem; font-size: 1.2rem;">✏️ Modifier la Table</h3>
+            <form id="tableEditForm" autocomplete="off">
+              <input type="hidden" id="tableEditId">
+              <input type="hidden" id="tableEditStatus">
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="tableEditName"
+                  style="display:block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Nom
+                  de la table</label>
+                <input type="text" id="tableEditName" required
+                  style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+              </div>
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border);">
+                <button type="button" id="deleteSpecificTableBtn"
+                  style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:1px solid #ef4444; background:transparent; color:#ef4444; cursor:pointer; font-weight:600; font-size:0.85rem; transition:all 0.2s;">🗑
+                  Supprimer</button>
+                <div style="display:flex; gap:0.5rem;">
+                  <button type="button" id="cancelTableEditBtn"
+                    style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:1px solid var(--border); background:var(--bg-card); color:var(--text-primary); cursor:pointer; font-weight:500; font-size:0.85rem;">Annuler</button>
+                  <button type="submit"
+                    style="padding:0.6rem 1.2rem; border-radius:var(--radius); border:none; background:var(--accent); color:#fff; cursor:pointer; font-weight:600; font-size:0.85rem;">Enregistrer</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div id="mergedTablesSection"
+          style="margin-bottom: 1.5rem; display: none; padding: 1rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--accent); border-radius: var(--radius);">
+          <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 1.1rem;">🔗 Tables en groupe</h3>
+          <div class="tables-grid" id="mergedTablesGrid"></div>
+        </div>
+        <div id="tablesGrid"></div>
+      </div>
+
+      <div id="order-page" class="page">
+        <div class="order-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <button type="button" class="btn btn-back" id="backToTables" style="margin-bottom:0;">←</button>
+            <h2 id="orderTableTitle" style="margin-bottom:0;">Commande - Table 1</h2>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="openTransferModalBtn">🔄 Transférer</button>
+        </div>
+        <div class="order-content">
+          <div class="order-items-section">
+            <h3>Articles</h3>
+            <div class="order-note">
+              <label for="orderNote">Note :</label>
+              <textarea id="orderNote" rows="2" placeholder="Note pour la commande..."></textarea>
+            </div>
+            <ul class="order-items-list" id="orderItemsList"></ul>
+            <div class="order-total">
+              <span>Total :</span>
+              <strong id="orderTotalAmount">0,00</strong>
+            </div>
+            <div class="order-actions">
+              <div class="order-primary-actions">
+                <button type="button" class="btn btn-secondary" id="partialPayBtn">Séparer l'addition (Paiement
+                  partiel)</button>
+                <button type="button" class="btn btn-danger" id="clearOrderBtn">Vider la commande</button>
+              </div>
+              <div class="payment-section">
+                <label>Mode de paiement :</label>
+                <select id="paymentMethod">
+                  <option value="cash">Espèces</option>
+                  <option value="card">Carte</option>
+                </select>
+                <button type="button" class="btn btn-primary btn-pay" id="payOrderBtn">Payer la totalité</button>
+              </div>
+            </div>
+          </div>
+          <div class="add-product-section">
+            <h3>Ajouter un produit</h3>
+            <input type="text" id="productSearchOrder" placeholder="Rechercher un produit..." class="input-search">
+            <div class="products-list-order" id="productsListOrder"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="menu-page" class="page">
+        <h2>Menu</h2>
+        <div class="menu-filters">
+          <input type="text" id="menuSearch" placeholder="Rechercher un produit..." class="input-search">
+          <select id="menuCategoryFilter">
+            <option value="">Toutes les catégories</option>
+          </select>
+          <button type="button" class="btn btn-primary" id="addProductBtn">+ Ajouter un produit</button>
+        </div>
+        <div class="menu-grid" id="menuGrid"></div>
+      </div>
+
+      <div id="history-page" class="page">
+        <div class="page-header-row">
+          <h2>Historique des commandes</h2>
+          <button type="button" class="btn btn-danger btn-sm" id="clearHistoryBtn">🗑 Supprimer l'historique</button>
+        </div>
+        <div class="history-filters">
+          <input type="text" id="historySearch" placeholder="Rechercher..." class="input-search">
+          <input type="date" id="historyDateFrom">
+          <input type="date" id="historyDateTo">
+          <select id="historyTableFilter">
+            <option value="">Toutes les tables</option>
+          </select>
+          <button type="button" class="btn btn-primary" id="historyFilterBtn">Filtrer</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+
+      <div id="revenue-page" class="page">
+        <h2>Recette du jour</h2>
+        <div class="revenue-summary" id="revenueSummary"></div>
+        <div class="revenue-close-day">
+          <button type="button" class="btn btn-primary btn-close-day" id="closeDayBtn">Clôturer la journée — Tout
+            enregistrer</button>
+        </div>
+        <div class="revenue-details">
+          <h3>Commandes payées aujourd'hui</h3>
+          <div id="revenueOrdersList"></div>
+          <h3>Total par catégorie</h3>
+          <div id="revenueByCategory"></div>
+          <h3>Produit le plus vendu</h3>
+          <div id="revenueBestProduct"></div>
+        </div>
+      </div>
+
+      <div id="team-page" class="page">
+        <div class="page-header-row">
+          <h2>👥 Équipe</h2>
+          <div class="page-header-actions">
+            <button type="button" class="btn btn-primary" id="addStaffBtn">+ Ajouter un serveur</button>
+          </div>
+        </div>
+        <div class="team-grid" id="teamGrid"></div>
+      </div>
+
+      <div id="notifications-page" class="page">
+        <div class="page-header-row">
+          <h2>Notifications</h2>
+          <div class="page-header-actions" style="display:flex; gap:0.5rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="markAllReadBtn">✓ Tout marquer lu</button>
+            <button type="button" class="btn btn-danger btn-sm" id="clearNotifsBtn">🗑 Tout supprimer</button>
+          </div>
+        </div>
+        <div class="notif-page-list" id="notifList"></div>
+      </div>
+
+      <div id="backup-page" class="page">
+        <h2>Sauvegarde des données</h2>
+        <div class="backup-actions">
+          <div class="backup-card">
+            <h3>Exporter les données</h3>
+            <p>Génère un fichier JSON contenant toutes les données.</p>
+            <button type="button" class="btn btn-primary" id="exportDataBtn">Exporter les données</button>
+          </div>
+          <div class="backup-card">
+            <h3>Exporter la recette du jour (PDF)</h3>
+            <p>Génère un fichier PDF avec le récapitulatif de la recette du jour.</p>
+            <button type="button" class="btn btn-primary" id="exportRevenuePdfBtn">📄 Exporter en PDF</button>
+          </div>
+          <div class="backup-card">
+            <h3>Importer les données</h3>
+            <p>Restaurer les données depuis un fichier JSON.</p>
+            <input type="file" id="importFileInput" accept=".json" style="display: none;">
+            <button type="button" class="btn btn-secondary" id="importDataBtn">Choisir un fichier</button>
+          </div>
+          <div class="backup-card backup-danger">
+            <h3>Réinitialiser toutes les données</h3>
+            <p>Supprime toutes les données et repart de zéro.</p>
+            <button type="button" class="btn btn-danger" id="resetDataBtn">Réinitialiser</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settings-page" class="page">
+        <h2>Paramètres</h2>
+        <form class="settings-form" id="settingsForm">
+          <div class="form-group">
+            <label for="settingCafeName">Nom du café</label>
+            <input type="text" id="settingCafeName" required>
+          </div>
+          <div class="form-group">
+            <label for="settingCurrency">Devise</label>
+            <input type="text" id="settingCurrency" placeholder="DT" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label for="settingNumTables">Nombre de tables</label>
+            <input type="number" id="settingNumTables" min="1" max="50" value="8">
+          </div>
+          <div class="form-group">
+            <label>Catégories (une par ligne)</label>
+            <textarea id="settingCategories" rows="8" placeholder="Café&#10;Thé&#10;Jus&#10;..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
+        </form>
+      </div>
+
+      <!-- Credits Page -->
+      <div id="credits-page" class="page">
+        <div class="calendar-header-actions">
+          <div>
+            <h2 style="margin-bottom:0;">Crédits clients</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.2rem;">Cliquez sur un jour pour
+              gérer les crédits</p>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <button type="button" class="btn btn-secondary btn-sm" id="prevMonthBtn">◀ Mois préc.</button>
+            <div class="calendar-month-title" id="calendarMonthTitle">Mois Année</div>
+            <button type="button" class="btn btn-secondary btn-sm" id="nextMonthBtn">Mois suiv. ▶</button>
+          </div>
+        </div>
+
+        <div class="calendar-grid" id="creditsCalendarContainer">
+          <!-- Calendar Cells will be injected here via JS -->
+        </div>
+
+        <div class="calendar-notes-section"
+          style="margin-top: 1.5rem; background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+          <h3
+            style="margin-bottom: 1rem; font-size: 1.15rem; color: var(--text-primary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">
+            📝 Détails et Notes des Crédits</h3>
+          <div id="creditsNotesList"
+            style="display: flex; flex-direction: column; gap: 0.8rem; max-height: 250px; overflow-y: auto;">
+            <!-- Notes will be injected here via JS -->
+          </div>
+        </div>
+
+        <!-- Add Credit Floating Modal (No longer inline) -->
+        <div class="modal" id="creditFormModal" style="z-index: 2000;">
+          <div class="modal-content" style="max-width: 500px;">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary); font-size: 1.3rem;">Ajouter / Gérer les crédits
+            </h3>
+            <p style="margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">Date sélectionnée:
+              <strong id="creditDateDisplay" style="color: var(--accent);"></strong>
+            </p>
+
+            <form id="creditForm">
+              <input type="hidden" id="creditDate" required>
+              <div style="display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group">
+                  <label>Nom du client</label>
+                  <input type="text" id="creditClientName" required placeholder="ex: Monsieur Ali">
+                </div>
+                <div class="form-group">
+                  <label>Montant (DT)</label>
+                  <input type="number" id="creditAmount" required step="0.1" min="0" placeholder="ex: 15.5">
+                </div>
+                <div class="form-group">
+                  <label>Note (optionnel)</label>
+                  <input type="text" id="creditNote" placeholder="Détails du crédit...">
+                </div>
+              </div>
+              <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary close-modal"
+                  data-modal="creditFormModal">Annuler</button>
+                <button type="submit" class="btn btn-primary">Enregistrer le crédit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Day Credits Details Modal -->
+        <div class="modal" id="dayCreditsModal" style="z-index: 1000;">
+          <div class="modal-content" style="max-width: 600px; padding: 2rem;">
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+              <div>
+                <h3 style="color: var(--text-primary); font-size: 1.4rem; margin-bottom: 0.25rem;">Détails du Jour</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;" id="dayCreditsDateDisplay"></p>
+              </div>
+              <button type="button" class="btn btn-primary" id="openAddCreditFromDayBtn"
+                style="font-size: 0.9rem; padding: 0.6rem 1rem;">+ Ajouter un crédit</button>
+            </div>
+
+            <div id="dayCreditsList"
+              style="display: flex; flex-direction: column; gap: 1rem; max-height: 400px; overflow-y: auto; padding-right: 0.5rem;">
+              <!-- Individual credit cards injected here -->
+            </div>
+
+            <div
+              style="margin-top: 1.5rem; text-align: right; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+              <button type="button" class="btn btn-secondary close-modal" data-modal="dayCreditsModal">Retour au
+                calendrier</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="stats-page" class="page">
+        <div class="page-header-row">
+          <h2>📈 Statistiques de Ventes</h2>
+          <div class="page-header-actions">
+            <select id="statsPeriodFilter" class="input-search" style="width: auto;">
+              <option value="current_month">Mois en cours</option>
+              <option value="last_month">Mois dernier</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stats-container"
+          style="margin-top: 1.5rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+          <h3 id="statsTitle" style="margin-bottom: 1.5rem; color: var(--text-primary);">Ventes par jour</h3>
+          <div style="width: 100%; height: 400px; position: relative;">
+            <canvas id="productSalesChart"></canvas>
+          </div>
+        </div>
+
+        <div class="stats-summary-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+          <div class="stat-card">
+            <span class="stat-label">Total Ventes (Mois)</span>
+            <div class="stat-value" id="statsTotalMonth">0,00 DT</div>
+          </div>
+          <div class="stat-card status-paid">
+            <span class="stat-label">🌟 Produit le plus vendu</span>
+            <div class="stat-value" id="statsBestProduct" style="font-size: 1.1rem; line-height: 1.2;">-</div>
+          </div>
+          <div class="stat-card status-occupied">
+            <span class="stat-label">📅 Meilleur jour du mois</span>
+            <div class="stat-value" id="statsBestDay" style="font-size: 1.1rem; line-height: 1.2;">-</div>
+          </div>
+        </div>
+
+        <div class="stats-container"
+          style="margin-top: 2rem; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+          <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">📊 Détail des produits vendus (Mois)</h3>
+          <div id="statsProductList" style="max-height: 400px; overflow-y: auto;">
+            <!-- Product details table will be injected here -->
+          </div>
+        </div>
+
+        <div class="stats-calendar-section" style="margin-top: 3rem;">
+          <div class="calendar-header-actions"
+            style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+            <div>
+              <h2 style="margin-bottom:0; font-size: 1.5rem;">📅 Calendrier des Recettes</h2>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.2rem;">Cliquez sur un jour pour
+                voir
+                et exporter la recette</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <button type="button" class="btn btn-secondary btn-sm" id="statsPrevMonthBtn">◀ Mois préc.</button>
+              <div class="calendar-month-title" id="statsMonthTitle"
+                style="font-weight: bold; min-width: 120px; text-align: center;">Mois Année</div>
+              <button type="button" class="btn btn-secondary btn-sm" id="statsNextMonthBtn">Mois suiv. ▶</button>
+            </div>
+          </div>
+          <div class="calendar-grid" id="statsCalendarContainer">
+            <!-- Calendar Cells will be injected here via JS -->
+          </div>
+        </div>
+      </div>
+  </div>
+  </main>
+  </div>
+
+  <div class="modal" id="confirmModal" style="z-index: 2000;">
+    <div class="modal-content">
+      <h3 id="confirmModalTitle">Confirmation</h3>
+      <p id="confirmModalMessage"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="confirmModalCancel">Annuler</button>
+        <button type="button" class="btn btn-primary" id="confirmModalOk">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="productFormModal">
+    <div class="modal-content">
+      <h3 id="productFormTitle">Ajouter un produit</h3>
+      <form id="productForm">
+        <input type="hidden" id="productFormId">
+        <div class="form-group">
+          <label for="productFormName">Nom</label>
+          <input type="text" id="productFormName" required>
+        </div>
+        <div class="form-group">
+          <label for="productFormCategory">Catégorie</label>
+          <select id="productFormCategory"></select>
+        </div>
+        <div class="form-group">
+          <label for="productFormPrice">Prix</label>
+          <input type="number" id="productFormPrice" step="0.01" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="productFormAvailable" checked> Disponible
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="productFormCancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="addTableModal">
+    <div class="modal-content">
+      <h3>Ajouter une table</h3>
+      <form id="addTableForm">
+        <div class="form-group">
+          <label for="addTableName">Nom de la table</label>
+          <input type="text" id="addTableName" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary close-modal" data-modal="addTableModal">Annuler</button>
+          <button type="submit" class="btn btn-primary">Ajouter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="orderDetailModal">
+    <div class="modal-content">
+      <h3>Détail de la commande</h3>
+      <div id="orderDetailContent"></div>
+      <button type="button" class="btn btn-secondary close-modal" data-modal="orderDetailModal">Fermer</button>
+    </div>
+  </div>
+
+  <div class="modal" id="partialPaymentModal">
+    <div class="modal-content">
+      <h3>Paiement partiel</h3>
+      <p style="margin-bottom: 1rem; color: var(--text-secondary);">Sélectionnez les articles à encaisser maintenant :
+      </p>
+      <div id="partialPaymentItems" class="partial-items-list"
+        style="max-height: 300px; overflow-y: auto; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem;">
+        <!-- Items go here via JS -->
+      </div>
+      <div class="total-preview" style="margin-bottom: 1rem; font-weight: 700; font-size: 1.25rem; text-align: right;">
+        À payer : <span id="partialPaymentTotal" style="color: var(--accent);">0,00</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary close-modal" data-modal="partialPaymentModal">Annuler</button>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <select id="partialPaymentMethod"
+            style="padding: 0.6rem; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary);">
+            <option value="cash">Espèces</option>
+            <option value="card">Carte</option>
+          </select>
+          <button type="button" class="btn btn-primary" id="confirmPartialPaymentBtn">Encaisser la sélection</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Form Modal -->
+  <div class="modal" id="staffFormModal">
+    <div class="modal-content" style="max-width: 420px;">
+      <h3 id="staffFormTitle">👥 Ajouter un serveur</h3>
+      <form id="staffForm" autocomplete="off">
+        <input type="hidden" id="staffFormId">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="staffFormName"
+            style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Nom
+            complet</label>
+          <input type="text" id="staffFormName" required placeholder="ex: Ahmed Ben Ali"
+            style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+        </div>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="staffFormUsername"
+            style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Identifiant
+            de connexion</label>
+          <input type="text" id="staffFormUsername" required placeholder="ex: ahmed"
+            style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+        </div>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="staffFormPassword"
+            style="display:block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Mot
+            de passe</label>
+          <input type="text" id="staffFormPassword" required placeholder="Mot de passe"
+            style="width:100%; padding:0.7rem 1rem; border-radius:var(--radius); border:1px solid var(--border); font-size:1rem; background:var(--bg-card); color:var(--text-primary);">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="staffFormCancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Imported Cafe Modal -->
+  <div class="modal" id="addImportedCafeModal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <h3 style="margin-bottom: 1rem; font-size: 1.2rem; color: var(--text-primary);">☕ Ajouter Café Importé</h3>
+      <p style="margin-bottom: 1.5rem; color: var(--text-secondary); line-height: 1.5;">Voulez-vous vraiment ajouter
+        <strong>1 Café importé (2,50 DT)</strong> directement à la recette d'aujourd'hui ?
+      </p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button type="button" class="btn btn-secondary"
+          onclick="document.getElementById('addImportedCafeModal').classList.remove('active')">Annuler</button>
+        <button type="button" class="btn btn-primary" id="confirmAddImportedCafeBtn">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Transfer Modal -->
+  <div class="modal" id="transferTableModal">
+    <div class="modal-content" style="max-width: 500px;">
+      <h3 style="margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">🔄 Transférer la
+        commande</h3>
+
+      <!-- Step 1: Selection du type -->
+      <div id="transferStepMode">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Voulez-vous transférer toute
+          la table ou seulement quelques produits ?</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <button type="button" class="btn btn-primary" id="transferModeTotalBtn"
+            style="display:flex; flex-direction: column; gap: 0.5rem; height: auto; padding: 1.5rem 1rem;">
+            <span style="font-size: 1.5rem;">🏠</span>
+            <span>Transfert Total</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="transferModePartialBtn"
+            style="display:flex; flex-direction: column; gap: 0.5rem; height: auto; padding: 1.5rem 1rem; background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent);">
+            <span style="font-size: 1.5rem;">☕</span>
+            <span>Transfert Partiel</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Selection des produits (Partiel uniquement) -->
+      <div id="transferStepItems" style="display: none;">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Sélectionnez les produits à
+          transférer :</p>
+        <div id="transferItemsList"
+          style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 1rem;">
+          <!-- Product list filled dynamically -->
+        </div>
+        <button type="button" class="btn btn-primary" id="confirmItemsToTransferBtn" style="width: 100%;">Choisir la
+          table destination</button>
+      </div>
+
+      <!-- Step 3: Selection de la table -->
+      <div id="transferStepTable" style="display: none;">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Sélectionnez la table de
+          destination :</p>
+        <div id="transferTablesGrid"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem; max-height: 200px; overflow-y: auto; padding: 0.5rem;">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+        <button type="button" class="btn btn-secondary btn-sm" id="transferBackBtn" style="visibility: hidden;">←
+          Retour</button>
+        <button type="button" class="btn btn-secondary btn-sm"
+          onclick="UI.closeModal('transferTableModal')">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Merge Tables Modal -->
+  <div class="modal" id="mergeTablesModal">
+    <div class="modal-content" style="max-width: 520px;">
+      <h3 style="margin-bottom: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">🔗 Fusionner
+        deux tables</h3>
+
+      <!-- Step 1: Select 2 occupied tables -->
+      <div id="mergeStepSelect">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Sélectionnez <strong>2 tables occupées</strong> à fusionner :
+        </p>
+        <div id="mergeTablesGrid"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; max-height: 280px; overflow-y: auto; padding: 0.5rem;">
+          <!-- Filled dynamically -->
+        </div>
+        <div id="mergeSelectionInfo"
+          style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-secondary); text-align: center;">
+          0 / 2 tables sélectionnées
+        </div>
+      </div>
+
+      <!-- Step 2: Choose destination -->
+      <div id="mergeStepDest" style="display: none;">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Quelle table garde la commande fusionnée ? <br>
+          <small>L'autre table sera libérée.</small>
+        </p>
+        <div id="mergeDestGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <!-- 2 buttons filled dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: space-between;">
+        <button type="button" class="btn btn-secondary btn-sm" id="mergeBackBtn" style="visibility: hidden;">←
+          Retour</button>
+        <div style="display:flex; gap:0.5rem;">
+          <button type="button" class="btn btn-secondary btn-sm"
+            onclick="UI.closeModal('mergeTablesModal')">Annuler</button>
+          <button type="button" class="btn btn-primary btn-sm" id="mergeNextBtn" disabled>Suivant →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clôture Detail Modal -->
+  <div class="modal" id="clotureDetailModal">
+    <div class="modal-content" style="max-width: 700px;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
+        <div>
+          <h3 id="clotureDetailTitle" style="margin-bottom: 0.25rem;">Détail de la recette</h3>
+          <p id="clotureDetailDate" style="font-size: 0.9rem; color: var(--text-secondary);"></p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;" id="clotureDetailActions">
+          <button type="button" class="btn btn-primary btn-sm" id="exportDayPdfBtn">📄 Exporter en PDF</button>
+          <button type="button" class="btn btn-secondary btn-sm"
+            onclick="UI.closeModal('clotureDetailModal')">Fermer</button>
+        </div>
+      </div>
+
+      <div id="cloturePdfContent">
+        <div class="cloture-detail-summary" id="clotureDetailSummary"
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <!-- Stats here -->
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+          <div>
+            <h4 style="margin-bottom: 1rem; font-size: 1rem;">📦 Commandes</h4>
+            <div id="clotureDetailOrders" style="max-height: 300px; overflow-y: auto;"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+              <h4 style="margin-bottom: 1rem; font-size: 1rem;">📂 Par catégorie</h4>
+              <div id="clotureDetailCategories"></div>
+            </div>
+            <div>
+              <h4 style="margin-bottom: 1rem; font-size: 1rem;">🏆 Produits vendus</h4>
+              <div id="clotureDetailBestProduct" style="max-height: 300px; overflow-y: auto;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <!-- HTML2PDF library for mobile PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="js/db.js?v=6"></script>
+  <script src="js/products.js?v=6"></script>
+  <script src="js/tables.js?v=6"></script>
+  <script src="js/orders.js?v=6"></script>
+  <script src="js/users.js?v=6"></script>
+  <script src="js/credits.js?v=6"></script>
+  <script src="js/notifications.js?v=6"></script>
+  <script src="js/dashboard.js?v=6"></script>
+  <script src="js/history.js?v=6"></script>
+  <script src="js/revenue.js?v=6"></script>
+  <script src="js/stats.js?v=6"></script>
+  <script src="js/backup.js?v=6"></script>
+  <script src="js/settings.js?v=6"></script>
+  <script src="js/ui.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
+</body>
+
+</html>

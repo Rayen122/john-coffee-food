@@ -1,0 +1,30 @@
+<!-- Product Form Modal -->
+<div class="modal" id="productFormModal">
+  <div class="modal-content">
+    <h3 id="productFormTitle">Ajouter un produit</h3>
+    <form id="productForm">
+      <input type="hidden" id="productFormId">
+      <div class="form-group">
+        <label for="productFormName">Nom</label>
+        <input type="text" id="productFormName" required>
+      </div>
+      <div class="form-group">
+        <label for="productFormCategory">Catégorie</label>
+        <select id="productFormCategory"></select>
+      </div>
+      <div class="form-group">
+        <label for="productFormPrice">Prix</label>
+        <input type="number" id="productFormPrice" step="0.01" min="0" required>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="productFormAvailable" checked> Disponible
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="productFormCancel">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>

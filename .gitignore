@@ -1,0 +1,201 @@
+# ========================================
+# DONNÉES PERSONNELLES ET SENSIBLES
+# ========================================
+
+# Documents personnels
+PROJECT_OVERVIEW.md
+*.personal.md
+notes/
+docs/personal/
+NOTES.md
+TODO.md
+
+# ========================================
+# FIREBASE ET CONFIGURATION
+# ========================================
+
+# Fichiers de configuration Firebase (contient des clés API)
+.firebaserc
+firebase.json
+.firebase/
+firebaseConfig.js
+
+# Hosting cache
+.firebase/hosting.*
+
+# ========================================
+# DONNÉES ET BACKUPS
+# ========================================
+
+# Fichiers de sauvegarde
+*.backup
+*.bak
+backup/
+backups/
+data/
+exports/
+
+# Fichiers JSON de données exportées
+*-backup-*.json
+backup-*.json
+data-export-*.json
+recette-*.json
+
+# Fichiers PDF générés
+Recette_du_jour_*.pdf
+recette_*.pdf
+rapport_*.pdf
+
+# ========================================
+# BASE DE DONNÉES
+# ========================================
+
+# Fichiers de base de données locale
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# IndexedDB (si exporté)
+indexeddb/
+
+# ========================================
+# LOGS ET DEBUG
+# ========================================
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================================
+# FICHIERS SYSTÈME
+# ========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ========================================
+# ÉDITEURS ET IDE
+# ========================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================================
+# DÉPENDANCES
+# ========================================
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Bower
+bower_components/
+
+# ========================================
+# ENVIRONNEMENT
+# ========================================
+
+# Variables d'environnement
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# ========================================
+# BUILD ET TEMPORAIRES
+# ========================================
+
+# Fichiers temporaires
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build
+dist/
+build/
+out/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# ========================================
+# TESTS
+# ========================================
+
+# Fichiers de test
+test-data/
+*.test.js.snap
+coverage/
+.nyc_output/
+
+# ========================================
+# IMAGES ET MÉDIAS PERSONNELS
+# ========================================
+
+# Images personnelles (garder logo.jpg qui est générique)
+# Décommentez si vous avez des images personnelles
+# photos/
+# images/personal/
+
+# ========================================
+# AUTRES
+# ========================================
+
+# Fichiers de verrouillage
+*.lock
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z

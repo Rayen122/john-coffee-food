@@ -1,0 +1,31 @@
+<!-- Credits Page -->
+<div id="credits-page" class="page">
+  <div class="calendar-header-actions">
+    <div>
+      <h2 style="margin-bottom:0;">Crédits clients</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.2rem;">Cliquez sur un jour pour
+        gérer les crédits</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button type="button" class="btn btn-secondary btn-sm" id="prevMonthBtn">◀ Mois préc.</button>
+      <div class="calendar-month-title" id="calendarMonthTitle">Mois Année</div>
+      <button type="button" class="btn btn-secondary btn-sm" id="nextMonthBtn">Mois suiv. ▶</button>
+    </div>
+  </div>
+
+  <div class="calendar-grid" id="creditsCalendarContainer">
+    <!-- Calendar Cells will be injected here via JS -->
+  </div>
+
+  <div class="calendar-notes-section"
+    style="margin-top: 1.5rem; background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+    <h3
+      style="margin-bottom: 1rem; font-size: 1.15rem; color: var(--text-primary); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">
+      📝 Détails et Notes des Crédits</h3>
+    <div id="creditsNotesList"
+      style="display: flex; flex-direction: column; gap: 0.8rem; max-height: 250px; overflow-y: auto;">
+      <!-- Notes will be injected here via JS -->
+    </div>
+  </div>
+</div>

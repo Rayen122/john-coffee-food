@@ -1,0 +1,17 @@
+<!-- History Page -->
+<div id="history-page" class="page">
+  <div class="page-header-row">
+    <h2>Historique des commandes</h2>
+    <button type="button" class="btn btn-danger btn-sm" id="clearHistoryBtn">🗑 Supprimer l'historique</button>
+  </div>
+  <div class="history-filters">
+    <input type="text" id="historySearch" placeholder="Rechercher..." class="input-search">
+    <input type="date" id="historyDateFrom">
+    <input type="date" id="historyDateTo">
+    <select id="historyTableFilter">
+      <option value="">Toutes les tables</option>
+    </select>
+    <button type="button" class="btn btn-primary" id="historyFilterBtn">Filtrer</button>
+  </div>
+  <div class="history-list" id="historyList"></div>
+</div>

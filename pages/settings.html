@@ -1,0 +1,23 @@
+<!-- Settings Page -->
+<div id="settings-page" class="page">
+  <h2>Paramètres</h2>
+  <form class="settings-form" id="settingsForm">
+    <div class="form-group">
+      <label for="settingCafeName">Nom du café</label>
+      <input type="text" id="settingCafeName" required>
+    </div>
+    <div class="form-group">
+      <label for="settingCurrency">Devise</label>
+      <input type="text" id="settingCurrency" placeholder="DT" maxlength="5">
+    </div>
+    <div class="form-group">
+      <label for="settingNumTables">Nombre de tables</label>
+      <input type="number" id="settingNumTables" min="1" max="50" value="8">
+    </div>
+    <div class="form-group">
+      <label>Catégories (une par ligne)</label>
+      <textarea id="settingCategories" rows="8" placeholder="Café&#10;Thé&#10;Jus&#10;..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
+  </form>
+</div>

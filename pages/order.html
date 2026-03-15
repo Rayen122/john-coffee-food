@@ -1,0 +1,44 @@
+<!-- Order Page -->
+<div id="order-page" class="page">
+  <div class="order-header" style="display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <button type="button" class="btn btn-back" id="backToTables" style="margin-bottom:0;">←</button>
+      <h2 id="orderTableTitle" style="margin-bottom:0;">Commande - Table 1</h2>
+    </div>
+    <button type="button" class="btn btn-secondary btn-sm" id="openTransferModalBtn">🔄 Transférer</button>
+  </div>
+  <div class="order-content">
+    <div class="order-items-section">
+      <h3>Articles</h3>
+      <div class="order-note">
+        <label for="orderNote">Note :</label>
+        <textarea id="orderNote" rows="2" placeholder="Note pour la commande..."></textarea>
+      </div>
+      <ul class="order-items-list" id="orderItemsList"></ul>
+      <div class="order-total">
+        <span>Total :</span>
+        <strong id="orderTotalAmount">0,00</strong>
+      </div>
+      <div class="order-actions">
+        <div class="order-primary-actions">
+          <button type="button" class="btn btn-secondary" id="partialPayBtn">Séparer l'addition (Paiement
+            partiel)</button>
+          <button type="button" class="btn btn-danger" id="clearOrderBtn">Vider la commande</button>
+        </div>
+        <div class="payment-section">
+          <label>Mode de paiement :</label>
+          <select id="paymentMethod">
+            <option value="cash">Espèces</option>
+            <option value="card">Carte</option>
+          </select>
+          <button type="button" class="btn btn-primary btn-pay" id="payOrderBtn">Payer la totalité</button>
+        </div>
+      </div>
+    </div>
+    <div class="add-product-section">
+      <h3>Ajouter un produit</h3>
+      <input type="text" id="productSearchOrder" placeholder="Rechercher un produit..." class="input-search">
+      <div class="products-list-order" id="productsListOrder"></div>
+    </div>
+  </div>
+</div>

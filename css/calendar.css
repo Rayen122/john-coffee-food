@@ -1,0 +1,178 @@
+/* ---- Credits Calendar ---- */
+.calendar-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    background: var(--bg-card);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.calendar-month-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-transform: capitalize;
+    min-width: 200px;
+    text-align: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
+.calendar-day-header {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 0.5rem;
+}
+
+.calendar-cell {
+    background: var(--bg-main);
+    border-radius: var(--radius-sm);
+    min-height: 70px;
+    padding: 0.5rem;
+    position: relative;
+    transition: all var(--transition-fast);
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-cell:hover {
+    background: var(--accent-glow);
+    border-color: rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+}
+
+.calendar-cell.empty {
+    background: transparent;
+    cursor: default;
+}
+
+.calendar-cell.empty:hover {
+    transform: none;
+    border-color: transparent;
+}
+
+.calendar-date {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    opacity: 0.6;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-cell.today .calendar-date {
+    color: var(--status-occupied);
+    opacity: 1;
+}
+
+.calendar-cell.today {
+    background: var(--status-occupied-bg);
+    border-color: var(--status-occupied);
+    box-shadow: inset 0 0 0 1px var(--status-occupied);
+}
+
+.calendar-credits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for cells */
+.calendar-credits-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.calendar-credits-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.calendar-credits-list::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.1);
+    border-radius: 4px;
+}
+
+.credit-bubble {
+    background: #FFFFFF;
+    border-left: 3px solid var(--status-occupied);
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s;
+}
+
+.credit-bubble:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    z-index: 10;
+}
+
+.credit-bubble-client {
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.credit-bubble-amount {
+    font-weight: 800;
+    color: var(--accent);
+    margin-top: 0.1rem;
+}
+
+.credit-bubble-note {
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0.1rem;
+}
+
+/* Enhanced Modal specifically for Credits */
+#creditFormModal .modal-content {
+    border-top: 5px solid var(--status-occupied);
+}
+
+.credit-more-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 0.2rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.credit-more-label:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
+}

@@ -1,0 +1,17 @@
+<!-- Tables Page -->
+<div id="tables-page" class="page">
+  <div class="page-header-row">
+    <h2>Tables</h2>
+    <div class="page-header-actions" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <button type="button" class="btn btn-primary" id="addTableBtn">+ Ajouter une table</button>
+      <button type="button" class="btn btn-secondary" id="mergeTablesBtn">🔗 Fusionner</button>
+    </div>
+  </div>
+
+  <div id="mergedTablesSection"
+    style="margin-bottom: 1.5rem; display: none; padding: 1rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed var(--accent); border-radius: var(--radius);">
+    <h3 style="margin-bottom: 1rem; color: var(--accent); font-size: 1.1rem;">🔗 Tables en groupe</h3>
+    <div class="tables-grid" id="mergedTablesGrid"></div>
+  </div>
+  <div id="tablesGrid"></div>
+</div>
