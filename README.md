@@ -93,6 +93,13 @@ L'application est entièrement responsive et fonctionne sur :
 
 ## 🎨 Personnalisation
 
+### Mode Sombre 🌙
+L'application dispose d'un mode sombre complet :
+- Cliquez sur le bouton 🌙/☀️ en bas à droite
+- Détection automatique de la préférence système
+- Sauvegarde de votre choix
+- Consultez [DARK_MODE.md](DARK_MODE.md) pour plus de détails
+
 ### Modifier le nom du café
 Allez dans **Paramètres** > Nom du café
 

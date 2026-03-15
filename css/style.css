@@ -212,25 +212,25 @@
 
 /* ---- Dark Mode Variables ---- */
 [data-theme="dark"] {
-  --bg-main: #0F172A;
-  --bg-sidebar: #020617;
-  --bg-sidebar-accent: #0F172A;
-  --bg-card: #1E293B;
-  --text-primary: #F1F5F9;
-  --text-secondary: #94A3B8;
-  --text-light: #F8FAFC;
-  --border: #334155;
-  --border-hover: #475569;
-  --status-free-bg: rgba(16, 185, 129, 0.1);
-  --status-occupied-bg: rgba(245, 158, 11, 0.1);
-  --status-paid-bg: rgba(59, 130, 246, 0.1);
-  --danger-bg: rgba(239, 68, 68, 0.1);
-  --accent-glow: rgba(59, 130, 246, 0.2);
-  --accent-glow-strong: rgba(59, 130, 246, 0.35);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 35px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.4);
-  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --bg-main: #1A1F2E;
+  --bg-sidebar: #0D1117;
+  --bg-sidebar-accent: #161B22;
+  --bg-card: #242B3D;
+  --text-primary: #E6EDF3;
+  --text-secondary: #A8B3CF;
+  --text-light: #F0F6FC;
+  --border: #3D4556;
+  --border-hover: #525B70;
+  --status-free-bg: rgba(16, 185, 129, 0.15);
+  --status-occupied-bg: rgba(245, 158, 11, 0.15);
+  --status-paid-bg: rgba(59, 130, 246, 0.15);
+  --danger-bg: rgba(239, 68, 68, 0.15);
+  --accent-glow: rgba(96, 165, 250, 0.25);
+  --accent-glow-strong: rgba(96, 165, 250, 0.4);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 35px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
 /* ---- Reset & Base ---- */
@@ -1238,7 +1238,7 @@ body {
 .product-add-btn .prod-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #1E293B;
+  color: var(--text-primary);
 }
 
 .product-add-btn .price {
@@ -1614,29 +1614,58 @@ body {
 }
 
 /* ---- Settings ---- */
+/* ---- Settings ---- */
 .settings-form {
-  max-width: 500px;
+  max-width: 700px;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
+}
+
+.settings-form .form-group {
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.settings-form .form-group:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.35rem;
-  font-weight: 600;
-  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-group label::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  border-radius: 2px;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  padding: 0.65rem 0.85rem;
-  border: 1.5px solid var(--border);
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-family: inherit;
-  background: var(--bg-card);
+  background: var(--bg-main);
+  color: var(--text-primary);
   transition: all var(--transition-fast);
 }
 
@@ -1644,12 +1673,43 @@ body {
 .form-group textarea:focus {
   outline: none;
   border-color: var(--accent);
+  background: var(--bg-card);
   box-shadow: 0 0 0 4px var(--accent-glow);
+  transform: translateY(-1px);
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 180px;
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+}
+
+.form-group input[type="number"] {
+  max-width: 200px;
+}
+
+/* Bouton d'enregistrement des paramètres */
+.settings-form .btn-primary {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+.settings-form .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Description helper text */
+.form-group .helper-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 /* ---- Modals ---- */
@@ -2396,4 +2456,116 @@ body {
   transition: background-color var(--transition-normal), 
               border-color var(--transition-normal), 
               color var(--transition-normal);
+}
+
+
+/* ========================================
+   DARK MODE IMPROVEMENTS
+   ======================================== */
+
+/* Améliorer la lisibilité des inputs en mode sombre */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background: var(--bg-sidebar-accent);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Améliorer les boutons en mode sombre */
+[data-theme="dark"] .hamburger-btn {
+  background: var(--bg-sidebar-accent);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .hamburger-btn span {
+  background: var(--text-light);
+}
+
+/* Améliorer les produits ajoutés en mode sombre */
+[data-theme="dark"] .product-add-btn.added {
+  border-color: var(--border);
+  background: var(--bg-sidebar-accent);
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .product-add-btn.added:hover {
+  border-color: var(--border);
+  background: var(--bg-sidebar-accent);
+}
+
+/* Améliorer les labels et badges en mode sombre */
+[data-theme="dark"] .credit-more-label {
+  background: var(--bg-sidebar-accent);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .credit-more-label:hover {
+  background: var(--border);
+  color: var(--text-primary);
+}
+
+/* Améliorer les modales en mode sombre */
+[data-theme="dark"] .modal {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+/* Améliorer le contraste des textes secondaires */
+[data-theme="dark"] .table-info,
+[data-theme="dark"] .stat-label,
+[data-theme="dark"] .order-date,
+[data-theme="dark"] .product-category {
+  color: var(--text-secondary);
+}
+
+/* Améliorer les ombres des cartes en mode sombre */
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .menu-product-card,
+[data-theme="dark"] .product-add-btn {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Améliorer les bordures en mode sombre */
+[data-theme="dark"] .order-note textarea,
+[data-theme="dark"] .input-search,
+[data-theme="dark"] .payment-section select {
+  border-color: var(--border);
+  background: var(--bg-sidebar-accent);
+}
+
+/* Améliorer la lisibilité des tableaux en mode sombre */
+[data-theme="dark"] .revenue-table th {
+  background: var(--bg-sidebar-accent);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .revenue-table td {
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .revenue-table tr:hover {
+  background: var(--bg-sidebar-accent);
+}
+
+/* Améliorer les formulaires en mode sombre */
+[data-theme="dark"] .form-group label {
+  color: var(--text-primary);
+}
+
+/* Améliorer le placeholder du login en mode sombre */
+[data-theme="dark"] .login-field input {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-light);
+}
+
+[data-theme="dark"] .login-field input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
