@@ -1,23 +1,39 @@
 <!-- Settings Page -->
 <div id="settings-page" class="page">
-  <h2>Paramètres</h2>
+  <div class="page-header-row" style="margin-bottom: 2rem;">
+    <div>
+      <h2 style="margin-bottom: 0.5rem;">⚙️ Paramètres</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem;">Configurez votre application selon vos besoins</p>
+    </div>
+  </div>
+  
   <form class="settings-form" id="settingsForm">
     <div class="form-group">
-      <label for="settingCafeName">Nom du café</label>
-      <input type="text" id="settingCafeName" required>
+      <label for="settingCafeName">☕ Nom du café</label>
+      <input type="text" id="settingCafeName" required placeholder="Ex: John Coffee Food">
+      <p class="helper-text">Ce nom apparaîtra dans l'application et sur les exports PDF</p>
     </div>
+    
     <div class="form-group">
-      <label for="settingCurrency">Devise</label>
+      <label for="settingCurrency">💰 Devise</label>
       <input type="text" id="settingCurrency" placeholder="DT" maxlength="5">
+      <p class="helper-text">Symbole de la devise utilisée (ex: €, $, DT, MAD)</p>
     </div>
+    
     <div class="form-group">
-      <label for="settingNumTables">Nombre de tables</label>
+      <label for="settingNumTables">🪑 Nombre de tables</label>
       <input type="number" id="settingNumTables" min="1" max="50" value="8">
+      <p class="helper-text">Nombre total de tables dans votre établissement (1-50)</p>
     </div>
+    
     <div class="form-group">
-      <label>Catégories (une par ligne)</label>
-      <textarea id="settingCategories" rows="8" placeholder="Café&#10;Thé&#10;Jus&#10;..."></textarea>
+      <label>📋 Catégories de produits</label>
+      <textarea id="settingCategories" rows="10" placeholder="Café&#10;Thé&#10;Jus&#10;Boissons fraîches&#10;Eau&#10;Desserts&#10;Snacks&#10;..."></textarea>
+      <p class="helper-text">Une catégorie par ligne. Ces catégories seront utilisées pour organiser votre menu</p>
     </div>
-    <button type="submit" class="btn btn-primary">Enregistrer les paramètres</button>
+    
+    <button type="submit" class="btn btn-primary">
+      💾 Enregistrer les paramètres
+    </button>
   </form>
 </div>

@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function () {
       Products.ensureDemo()
     ]);
   }).then(function () {
+    // Initialiser les timestamps d'occupation pour les tables déjà occupées
+    return Tables.initializeOccupationTimestamps();
+  }).then(function () {
     UI.renderDashboard();
     UI.renderTables();
     UI.renderMenu();

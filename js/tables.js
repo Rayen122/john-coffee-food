@@ -37,14 +37,22 @@ async function setTableOccupied(tableId, orderId) {
   if (!table) return null;
   table.status = STATUS.OCCUPIED;
   table.activeOrderId = orderId;
+  
+  // Si la table n'a pas encore de timestamp d'occupation, l'ajouter maintenant
+  if (!table.occupiedAt) {
+    table.occupiedAt = new Date().toISOString();
+  }
+  
   return saveTable(table);
 }
+
 
 async function setTableFree(tableId) {
   const table = await getTable(tableId);
   if (!table) return null;
   table.status = STATUS.FREE;
   table.activeOrderId = null;
+  table.occupiedAt = null; // Nettoyer le timestamp
   return saveTable(table);
 }
 
@@ -311,8 +319,22 @@ async function separateTable(tableId) {
   // Create a new empty order for this table
   const newOrder = await Orders.create(tableId);
   table.activeOrderId = newOrder.id;
+  table.occupiedAt = new Date().toISOString(); // Reset occupation time for separated table
   await saveTable(table);
   return true;
+}
+
+// Fonction pour initialiser les timestamps sur les tables déjà occupées
+async function initializeOccupationTimestamps() {
+  const tables = await getAllTables();
+  const now = new Date().toISOString();
+  
+  for (const table of tables) {
+    if (table.status === STATUS.OCCUPIED && !table.occupiedAt) {
+      table.occupiedAt = now;
+      await saveTable(table);
+    }
+  }
 }
 
 window.Tables = {
@@ -329,6 +351,7 @@ window.Tables = {
   group: groupTables,
   separate: separateTable,
   ensureDemo: ensureDemoTables,
+  initializeOccupationTimestamps: initializeOccupationTimestamps,
   STATUS,
   STATUS_LABELS
 };

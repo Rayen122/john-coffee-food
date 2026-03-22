@@ -828,7 +828,7 @@ body {
 /* ---- Tables Grid ---- */
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
 }
 
@@ -2568,4 +2568,32 @@ body {
 
 [data-theme="dark"] .login-field input::placeholder {
   color: rgba(255, 255, 255, 0.4);
+}
+
+
+/* Améliorer la page paramètres en mode sombre */
+[data-theme="dark"] .settings-form .form-group {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .settings-form .form-group:hover {
+  border-color: var(--accent);
+  background: var(--bg-sidebar-accent);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group textarea {
+  background: var(--bg-sidebar);
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group textarea:focus {
+  background: var(--bg-sidebar-accent);
+  border-color: var(--accent);
+}
+
+[data-theme="dark"] .helper-text {
+  color: var(--text-secondary);
 }

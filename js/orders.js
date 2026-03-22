@@ -179,11 +179,26 @@ async function updateOrderPaymentMethod(orderId, method) {
 async function payOrder(orderId) {
   const order = await getOrder(orderId);
   if (!order || order.status === ORDER_STATUS.PAID) return null;
+  
+  // Calculer la durée d'occupation de la table
+  let occupationDuration = null;
+  const allTables = await Tables.getAll();
+  const occupiedTable = allTables.find(t => t.activeOrderId === order.id);
+  
+  if (occupiedTable && occupiedTable.occupiedAt) {
+    const occupiedAt = new Date(occupiedTable.occupiedAt);
+    const paidAt = new Date();
+    occupationDuration = Math.round((paidAt - occupiedAt) / 1000 / 60); // Durée en minutes
+  }
+  
   order.status = ORDER_STATUS.PAID;
   order.paidAt = new Date().toISOString();
+  order.occupationDuration = occupationDuration; // Stocker la durée d'occupation
+  
   // Ensure the waiter who takes the payment gets the credit
   if (window.getCurrentUserName) order.waiterName = window.getCurrentUserName();
   if (window.getCurrentUserRole) order.waiterRole = window.getCurrentUserRole();
+  
   await CafeDB.put(ORDER_STORE, order);
   await CafeDB.put(PAYMENT_STORE, {
     id: CafeDB.generateId(),
@@ -192,12 +207,14 @@ async function payOrder(orderId) {
     method: order.paymentMethod,
     paidAt: order.paidAt
   });
-  const allTables = await Tables.getAll();
+  
+  // Libérer la table
   for (const t of allTables) {
     if (t.activeOrderId === order.id) {
       await Tables.setFree(t.id);
     }
   }
+  
   return order;
 }
 
@@ -229,6 +246,17 @@ async function payPartial(orderId, itemsToPay, method) {
   const originalOrder = await getOrder(orderId);
   if (!originalOrder || originalOrder.status === ORDER_STATUS.PAID) return null;
 
+  // Calculer la durée d'occupation de la table
+  let occupationDuration = null;
+  const allTables = await Tables.getAll();
+  const occupiedTable = allTables.find(t => t.activeOrderId === originalOrder.id);
+  
+  if (occupiedTable && occupiedTable.occupiedAt) {
+    const occupiedAt = new Date(occupiedTable.occupiedAt);
+    const paidAt = new Date();
+    occupationDuration = Math.round((paidAt - occupiedAt) / 1000 / 60); // Durée en minutes
+  }
+
   // 1. Create a "split" order that gets paid immediately
   const newOrder = {
     id: CafeDB.generateId(),
@@ -240,6 +268,7 @@ async function payPartial(orderId, itemsToPay, method) {
     paymentMethod: method,
     note: 'Paiement partiel depuis ' + originalOrder.id.slice(-6),
     total: 0,
+    occupationDuration: occupationDuration, // Stocker la durée d'occupation
     // Add waiter info to the split order
     waiterName: window.getCurrentUserName ? window.getCurrentUserName() : (originalOrder.waiterName || 'Inconnu'),
     waiterRole: window.getCurrentUserRole ? window.getCurrentUserRole() : (originalOrder.waiterRole || 'serveur')
@@ -312,8 +341,8 @@ async function payPartial(orderId, itemsToPay, method) {
     // We don't record another payment, it's 0 amount, just closing it.
     originalOrder.paidAt = new Date().toISOString();
     originalOrder.total = 0;
+    originalOrder.occupationDuration = occupationDuration; // Ajouter la durée à la commande originale aussi
     await CafeDB.put(ORDER_STORE, originalOrder);
-    const allTables = await Tables.getAll();
     for (const t of allTables) {
       if (t.activeOrderId === originalOrder.id) {
         await Tables.setFree(t.id);

@@ -1,5 +1,5 @@
 /**
- * Interface utilisateur - rendu des pages et modales
+ * Interface utilisateur principale - Module central
  */
 
 var currentOrderId = null;
@@ -47,7 +47,54 @@ function hideConfirm() {
   document.getElementById('confirmModal').classList.remove('active');
 }
 
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// Gestionnaires d'événements pour les modales
 document.getElementById('confirmModalCancel').onclick = hideConfirm;
+
+document.querySelectorAll('.close-modal').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var modalId = this.getAttribute('data-modal');
+    if (modalId) {
+      closeModal(modalId);
+    }
+  });
+});
+
+// Export du module principal
+window.UI = {
+  showPage: showPage,
+  setCafeName: setCafeName,
+  formatPrice: formatPrice,
+  showConfirm: showConfirm,
+  openModal: openModal,
+  closeModal: closeModal,
+  
+  // Délégation aux modules spécialisés
+  renderTables: function() { return UITables.renderTables(); },
+  renderMenu: function() { return UIMenu.renderMenu(); },
+  renderHistory: function() { return UIHistory.renderHistory(); },
+  renderHistoryFilters: function() { return UIHistory.renderHistoryFilters(); },
+  openOrderForTable: function(tableId, tableName) { return UIOrders.openOrderForTable(tableId, tableName); },
+  showOrderPage: function(tableName) { return UIOrders.showOrderPage(tableName); },
+  renderOrderItems: function() { return UIOrders.renderOrderItems(); },
+  renderOrderProducts: function() { return UIOrders.renderOrderProducts(); },
+  showOrderDetail: function(orderId) { return UIHistory.showOrderDetail(orderId); },
+  
+  // Propriétés
+  get currentOrderId() { return currentOrderId; },
+  set currentOrderId(value) { currentOrderId = value; },
+  get currentTableId() { return currentTableId; },
+  set currentTableId(value) { currentTableId = value; },
+  get currencySymbol() { return currencySymbol; },
+  set currencySymbol(value) { currencySymbol = value; }
+};
 
 function renderDashboard() {
   Dashboard.getStats().then(function (stats) {
@@ -92,187 +139,12 @@ window.addImportedCafe = function () {
   if (el) el.classList.add('active');
 };
 
-var currentTableFilter = 'all';
-
+// Table filter delegation to UITables module
 window.setTableFilter = function (filterStr) {
-  currentTableFilter = filterStr;
-  showPage('tables');
-  renderTables();
+  if (window.UITables && window.UITables.setTableFilter) {
+    window.UITables.setTableFilter(filterStr);
+  }
 };
-
-function renderTables() {
-  // Pre-fetch all necessary data in parallel to avoid N+1 queries
-  Promise.all([
-    Tables.getAll(),
-    Orders.getAll(),
-    CafeDB.getAll(CafeDB.STORES.orderItems)
-  ]).then(function (results) {
-    var tables = results[0];
-    var allOrders = results[1];
-    var allItems = results[2];
-
-    // Build Maps for O(1) lookup
-    var activeOrdersByTableId = {};
-    var itemsCountByOrderId = {};
-
-    // Process items count per order
-    allItems.forEach(function (item) {
-      if (!itemsCountByOrderId[item.orderId]) {
-        itemsCountByOrderId[item.orderId] = 0;
-      }
-      itemsCountByOrderId[item.orderId]++;
-    });
-
-    // Map pending orders to tables
-    allOrders.forEach(function (o) {
-      if (o.status === Orders.ORDER_STATUS.PENDING) {
-        activeOrdersByTableId[o.tableId] = o;
-      }
-    });
-
-    // 0. Sort the tables naturally by name (e.g., Table 1, Table 2, Table 10)
-    tables.sort(function (a, b) {
-      return (a.name || a.id).localeCompare((b.name || b.id), undefined, { numeric: true, sensitivity: 'base' });
-    });
-
-    // 1. Filtrer les tables selon l'état actuel
-    var filteredTables = tables;
-    if (currentTableFilter === 'free') {
-      filteredTables = tables.filter(function (t) { return t.status === Tables.STATUS.FREE; });
-    } else if (currentTableFilter === 'occupied') {
-      filteredTables = tables.filter(function (t) { return t.status === Tables.STATUS.OCCUPIED; });
-    }
-
-    // 4. Detect groups (tables sharing the same activeOrderId)
-    var ordersToTables = {};
-    tables.forEach(function (t) {
-      if (t.activeOrderId) {
-        if (!ordersToTables[t.activeOrderId]) ordersToTables[t.activeOrderId] = [];
-        ordersToTables[t.activeOrderId].push(t);
-      }
-    });
-
-    var groupedOrderIds = Object.keys(ordersToTables).filter(function (oid) {
-      return ordersToTables[oid].length > 1;
-    });
-
-    // 5. Render Grouped Tables Section
-    var mergedSection = document.getElementById('mergedTablesSection');
-    var mergedGrid = document.getElementById('mergedTablesGrid');
-    if (groupedOrderIds.length > 0) {
-      mergedSection.style.display = 'block';
-      var mergedHtml = '';
-      groupedOrderIds.forEach(function (oid) {
-        var groupTables = ordersToTables[oid];
-        var groupNames = groupTables.map(function (t) { return t.name || t.id; }).join(' + ');
-        var activeOrder = activeOrdersByTableId[groupTables[0].id];
-        var info = activeOrder ? (itemsCountByOrderId[activeOrder.id] || 0) + ' articles · ' + formatPrice(activeOrder.total) : '—';
-
-        mergedHtml += '<div class="group-container" style="grid-column: 1 / -1; margin-bottom: 1rem; border: 1px solid var(--accent); border-radius: var(--radius); padding: 1rem; background: var(--bg-body);">';
-        mergedHtml += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">';
-        mergedHtml += '<div style="font-weight:700; color:var(--accent);">🔗 Groupe: ' + groupNames + '</div>';
-        mergedHtml += '<div style="font-size:0.9rem; color:var(--text-secondary);">' + info + '</div>';
-        mergedHtml += '</div>';
-        mergedHtml += '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:1rem;">';
-
-        groupTables.forEach(function (t) {
-          mergedHtml += '<div class="table-card status-occupied" data-table-id="' + t.id + '" data-table-name="' + (t.name || '').replace(/"/g, '&quot;') + '">';
-          mergedHtml += '<div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">';
-          mergedHtml += '<div class="table-name">' + (t.name || t.id) + '</div>';
-          mergedHtml += '<button type="button" class="btn-separate-table" title="Dissocier cette table" data-table-id="' + t.id + '" style="background:var(--accent); border:none; color:#fff; border-radius:4px; padding:2px 6px; font-size:0.75rem; cursor:pointer;">✂️ Séparer</button>';
-          mergedHtml += '</div>';
-          mergedHtml += '<div class="table-info">Fait partie du groupe</div>';
-          mergedHtml += '</div>';
-        });
-
-        mergedHtml += '</div></div>';
-      });
-      mergedGrid.innerHTML = mergedHtml;
-    } else {
-      mergedSection.style.display = 'none';
-      mergedGrid.innerHTML = '';
-    }
-
-    // 6. Build the remaining regular tables UI
-    var html = '<div class="table-filters" style="display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap;">';
-    html += '<button class="filter-btn ' + (currentTableFilter === 'all' ? 'active' : '') + '" onclick="window.setTableFilter(\'all\')" style="padding:0.4rem 1rem; border-radius:20px; border:1px solid var(--border); background:' + (currentTableFilter === 'all' ? 'var(--accent)' : 'transparent') + '; color:' + (currentTableFilter === 'all' ? '#fff' : 'var(--text-primary)') + '; cursor:pointer; font-weight:500;">Toutes</button>';
-    html += '<button class="filter-btn ' + (currentTableFilter === 'free' ? 'active' : '') + '" onclick="window.setTableFilter(\'free\')" style="padding:0.4rem 1rem; border-radius:20px; border:1px solid var(--status-free); background:' + (currentTableFilter === 'free' ? 'var(--status-free)' : 'transparent') + '; color:' + (currentTableFilter === 'free' ? '#fff' : 'var(--status-free)') + '; cursor:pointer; font-weight:500;">Libres (' + tables.filter((function (t) { return t.status === Tables.STATUS.FREE })).length + ')</button>';
-    html += '<button class="filter-btn ' + (currentTableFilter === 'occupied' ? 'active' : '') + '" onclick="window.setTableFilter(\'occupied\')" style="padding:0.4rem 1rem; border-radius:20px; border:1px solid var(--status-occupied); background:' + (currentTableFilter === 'occupied' ? 'var(--status-occupied)' : 'transparent') + '; color:' + (currentTableFilter === 'occupied' ? '#fff' : 'var(--status-occupied)') + '; cursor:pointer; font-weight:500;">Occupées (' + tables.filter((function (t) { return t.status === Tables.STATUS.OCCUPIED })).length + ')</button>';
-    html += '</div>';
-
-    html += '<div class="tables-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:1rem; width:100%;">';
-
-    var isAdmin = window.getCurrentUserRole && window.getCurrentUserRole() === 'admin';
-
-    // Filter out tables that are already shown in the merged section
-    var shownGroupedIds = [];
-    groupedOrderIds.forEach(function (oid) {
-      ordersToTables[oid].forEach(function (t) { shownGroupedIds.push(t.id); });
-    });
-
-    filteredTables.forEach(function (t) {
-      if (shownGroupedIds.indexOf(t.id) !== -1) return; // Skip if in group section
-
-      var statusClass = 'status-' + t.status;
-      var statusLabel = Tables.STATUS_LABELS[t.status] || t.status;
-      var infoText = 'Aucune commande';
-
-      var activeOrder = t.activeOrderId ? activeOrdersByTableId[t.id] : null;
-      if (t.activeOrderId && activeOrder) {
-        var count = itemsCountByOrderId[activeOrder.id] || 0;
-        infoText = count + ' article(s) · ' + formatPrice(activeOrder.total);
-      }
-
-      html += '<div class="table-card ' + statusClass + '" data-table-id="' + t.id + '" data-table-name="' + (t.name || '').replace(/"/g, '&quot;') + '">';
-      html += '<div class="table-header" style="display:flex; justify-content:space-between; align-items:center;">';
-      html += '<div class="table-name">' + (t.name || t.id) + '</div>';
-      if (isAdmin) {
-        html += '<button type="button" class="btn-edit-table" style="background:transparent; border:none; cursor:pointer; color:var(--text-secondary); opacity:0.6; padding:4px; border-radius:4px;" title="Modifier la table" data-table-id="' + t.id + '" data-table-name="' + (t.name || '').replace(/"/g, '&quot;') + '" data-table-status="' + t.status + '">✏️</button>';
-      }
-      html += '</div>';
-      html += '<div class="table-status">' + statusLabel + '</div>';
-      html += '<div class="table-info">' + infoText + '</div>';
-      html += '</div>';
-    });
-
-    html += '</div>';
-
-    var container = document.getElementById('tablesGrid');
-    container.innerHTML = html;
-
-    // Attach events for both grids
-    document.querySelectorAll('.table-card').forEach(function (card) {
-      card.addEventListener('click', function (e) {
-        if (e.target.closest('.btn-edit-table') || e.target.closest('.btn-separate-table')) return;
-        openOrderForTable(card.getAttribute('data-table-id'), card.getAttribute('data-table-name'));
-      });
-    });
-
-    document.querySelectorAll('.btn-edit-table').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        document.getElementById('tableEditId').value = this.getAttribute('data-table-id');
-        document.getElementById('tableEditName').value = this.getAttribute('data-table-name');
-        document.getElementById('tableEditStatus').value = this.getAttribute('data-table-status');
-        UI.openModal('tableEditModal');
-      });
-    });
-
-    document.querySelectorAll('.btn-separate-table').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        var tid = this.getAttribute('data-table-id');
-        showConfirm('Séparer la table', 'Voulez-vous vraiment séparer cette table du groupe ? Elle aura une commande indépendante vide.', function () {
-          Tables.separate(tid).then(function () {
-            renderTables();
-          }).catch(function (err) {
-            alert(err.message);
-          });
-        });
-      });
-    });
-  });
-}
 
 function openOrderForTable(tableId, tableName) {
   currentTableId = tableId;
@@ -342,7 +214,7 @@ function renderOrderItems() {
       currentOrderId = null;
       currentTableId = null;
       showPage('tables');
-      renderTables();
+      UI.renderTables();
       renderDashboard();
       return;
     }
@@ -460,7 +332,7 @@ function renderOrderProducts() {
         function doAddItem(orderId) {
           Orders.addItem(orderId, productId, productName, productPrice, 1).then(function () {
             renderOrderItems();
-            renderTables();
+            UI.renderTables();
             renderOrderProducts(); // Refresh list to disable this button
           });
         }
@@ -681,9 +553,22 @@ function renderHistory() {
       orders.forEach(function (o) {
         var date = o.paidAt ? new Date(o.paidAt) : new Date(o.createdAt);
         var dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        
+        // Afficher la durée d'occupation si disponible
+        var occupationInfo = '';
+        if (o.occupationDuration !== null && o.occupationDuration !== undefined) {
+          if (o.occupationDuration < 60) {
+            occupationInfo = ' · ⏱️ ' + o.occupationDuration + ' min';
+          } else {
+            var hours = Math.floor(o.occupationDuration / 60);
+            var minutes = o.occupationDuration % 60;
+            occupationInfo = ' · ⏱️ ' + hours + 'h' + (minutes > 0 ? minutes.toString().padStart(2, '0') : '');
+          }
+        }
+        
         html += '<div class="history-item" data-order-id="' + o.id + '">';
         html += '<span class="order-table">' + (tableMap[o.tableId] || o.tableId) + '</span>';
-        html += '<span class="order-date">' + dateStr + '</span>';
+        html += '<span class="order-date">' + dateStr + occupationInfo + '</span>';
         html += '<span class="order-total-badge">' + formatPrice(o.total) + '</span>';
         html += '<span>' + (Orders.PAYMENT_METHODS[o.paymentMethod] || o.paymentMethod) + '</span>';
         if (isAdmin) {
@@ -781,7 +666,7 @@ document.getElementById('clearOrderBtn').onclick = function () {
       currentOrderId = null;
       currentTableId = null;
       showPage('tables');
-      renderTables();
+      UI.renderTables();
       renderDashboard();
     });
   });
@@ -799,7 +684,7 @@ document.getElementById('payOrderBtn').onclick = function () {
         currentOrderId = null;
         currentTableId = null;
         showPage('tables');
-        renderTables();
+        UI.renderTables();
         renderDashboard();
         renderRevenue();
       });
@@ -927,7 +812,7 @@ document.getElementById('confirmPartialPaymentBtn').onclick = function () {
               renderOrderItems();
             }
             // Retiré "alert" ici pour éviter de bloquer l'affichage
-            renderTables();
+            UI.renderTables();
             renderDashboard();
             renderRevenue();
           }).catch(function (e) {
@@ -1304,7 +1189,7 @@ document.getElementById('closeDayBtn').onclick = function () {
         currentOrderId = null;
         currentTableId = null;
         renderRevenue();
-        renderTables();
+        UI.renderTables();
         renderDashboard();
         renderHistory();
         alert('Journée clôturée. Le rapport PDF a été généré, toutes les commandes ont été enregistrées en historique et les tables libérées.');
@@ -1487,7 +1372,7 @@ document.getElementById('settingsForm').addEventListener('submit', function (e) 
     currencySymbol = document.getElementById('settingCurrency').value || 'DT';
     setCafeName(document.getElementById('settingCafeName').value);
     Tables.ensureDemo(num).then(function () {
-      renderTables();
+      UI.renderTables();
       renderHistoryFilters();
       alert('Paramètres enregistrés.');
     });
@@ -1960,7 +1845,7 @@ async function renderTransferTables() {
           }
 
           closeModal('transferTableModal');
-          renderTables();
+          UI.renderTables();
           renderDashboard();
           showOrderPage(currentTableId); // Refresh items
         } catch (error) {
@@ -2051,7 +1936,7 @@ if (_mergeNextBtn) {
         try {
           await Tables.group(mergeSelectedTables);
           closeModal('mergeTablesModal');
-          renderTables();
+          UI.renderTables();
           renderDashboard();
         } catch (err) {
           alert('Erreur: ' + err.message);
@@ -2091,6 +1976,9 @@ window.UI = {
   showDayRevenueDetail: showDayRevenueDetail,
   renderStatsCalendar: renderStatsCalendar,
   openDayCredits: openDayCredits,
+  updateOccupationTimers: updateOccupationTimers,
+  startOccupationTimer: startOccupationTimer,
+  stopOccupationTimer: stopOccupationTimer,
   get currentOrderId() { return currentOrderId; },
   get currentTableId() { return currentTableId; },
   get currencySymbol() { return currencySymbol; },
