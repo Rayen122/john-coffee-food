@@ -59,6 +59,28 @@ async function createOrder(tableId) {
 
 let actionQueue = Promise.resolve();
 
+async function _adjustStock(productName, deductQty) {
+  if (!window.Stock) return;
+  try {
+    const stockItems = await Stock.getAll();
+    let stockItem = stockItems.find(s => s.name.toLowerCase() === productName.toLowerCase());
+
+    if (!stockItem && window.Products) {
+      const allProducts = await Products.getAll();
+      const product = allProducts.find(p => p.name.toLowerCase() === productName.toLowerCase());
+      if (product && product.category) {
+        stockItem = stockItems.find(s => s.category && s.category.toLowerCase() === product.category.toLowerCase());
+      }
+    }
+
+    if (stockItem) {
+      await Stock.deduct(stockItem.id, deductQty);
+    }
+  } catch (e) {
+    console.error('Erreur ajustement stock:', e);
+  }
+}
+
 async function addItemToOrder(orderId, productId, productName, unitPrice, quantity = 1) {
   return new Promise((resolve, reject) => {
     actionQueue = actionQueue.then(async () => {
@@ -83,6 +105,9 @@ async function addItemToOrder(orderId, productId, productName, unitPrice, quanti
         }
         await CafeDB.put(ORDER_ITEMS_STORE, item);
         await recalcOrderTotal(orderId);
+
+        await _adjustStock(productName, quantity);
+
         resolve(item);
       } catch (e) {
         reject(e);
@@ -108,6 +133,9 @@ async function updateItemQuantity(orderId, itemId, delta) {
           await CafeDB.put(ORDER_ITEMS_STORE, item);
         }
         await recalcOrderTotal(orderId);
+
+        await _adjustStock(item.productName, delta);
+
         resolve(await getOrder(orderId));
       } catch (e) {
         reject(e);
@@ -120,6 +148,10 @@ async function removeItemFromOrder(orderId, itemId) {
   return new Promise((resolve, reject) => {
     actionQueue = actionQueue.then(async () => {
       try {
+        const item = await CafeDB.get(ORDER_ITEMS_STORE, itemId);
+        if (item) {
+          await _adjustStock(item.productName, -item.quantity); // Restore stock
+        }
         await CafeDB.remove(ORDER_ITEMS_STORE, itemId);
         resolve(await recalcOrderTotal(orderId));
       } catch (e) {
@@ -179,26 +211,26 @@ async function updateOrderPaymentMethod(orderId, method) {
 async function payOrder(orderId) {
   const order = await getOrder(orderId);
   if (!order || order.status === ORDER_STATUS.PAID) return null;
-  
+
   // Calculer la durée d'occupation de la table
   let occupationDuration = null;
   const allTables = await Tables.getAll();
   const occupiedTable = allTables.find(t => t.activeOrderId === order.id);
-  
+
   if (occupiedTable && occupiedTable.occupiedAt) {
     const occupiedAt = new Date(occupiedTable.occupiedAt);
     const paidAt = new Date();
     occupationDuration = Math.round((paidAt - occupiedAt) / 1000 / 60); // Durée en minutes
   }
-  
+
   order.status = ORDER_STATUS.PAID;
   order.paidAt = new Date().toISOString();
   order.occupationDuration = occupationDuration; // Stocker la durée d'occupation
-  
+
   // Ensure the waiter who takes the payment gets the credit
   if (window.getCurrentUserName) order.waiterName = window.getCurrentUserName();
   if (window.getCurrentUserRole) order.waiterRole = window.getCurrentUserRole();
-  
+
   await CafeDB.put(ORDER_STORE, order);
   await CafeDB.put(PAYMENT_STORE, {
     id: CafeDB.generateId(),
@@ -207,20 +239,22 @@ async function payOrder(orderId) {
     method: order.paymentMethod,
     paidAt: order.paidAt
   });
-  
+
   // Libérer la table
   for (const t of allTables) {
     if (t.activeOrderId === order.id) {
       await Tables.setFree(t.id);
     }
   }
-  
+
   return order;
 }
 
 async function clearOrderItems(orderId) {
   const items = await getOrderItems(orderId);
   for (const item of items) {
+    // Restore stock before removing
+    await _adjustStock(item.productName, -item.quantity);
     await CafeDB.remove(ORDER_ITEMS_STORE, item.id);
   }
   return recalcOrderTotal(orderId);
@@ -250,7 +284,7 @@ async function payPartial(orderId, itemsToPay, method) {
   let occupationDuration = null;
   const allTables = await Tables.getAll();
   const occupiedTable = allTables.find(t => t.activeOrderId === originalOrder.id);
-  
+
   if (occupiedTable && occupiedTable.occupiedAt) {
     const occupiedAt = new Date(occupiedTable.occupiedAt);
     const paidAt = new Date();

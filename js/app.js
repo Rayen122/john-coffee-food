@@ -204,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function () {
     UI.renderHistory();
     UI.renderRevenue();
     UI.renderSettings();
+    UI.renderStock();
     UI.setupBackup();
     if (currentUserRole === 'admin') {
       UI.renderTeam();
@@ -236,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (page === 'team') UI.renderTeam();
     if (page === 'notifications') UI.renderNotifications();
     if (page === 'credits') UI.renderCreditsCalendar();
+    if (page === 'stock') UI.renderStock();
     if (page === 'stats') {
       Stats.renderProductCurve();
       UI.renderStatsCalendar();
@@ -257,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (page === 'revenue') UI.renderRevenue();
     if (page === 'notifications') UI.renderNotifications();
     if (page === 'credits') UI.renderCreditsCalendar();
+    if (page === 'stock') UI.renderStock();
     if (page === 'stats') {
       Stats.renderProductCurve();
       UI.renderStatsCalendar();

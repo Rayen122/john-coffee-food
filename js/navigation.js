@@ -7,22 +7,22 @@ function initNavigation() {
   var sidebar = document.getElementById('sidebar');
   var hamburgerBtn = document.getElementById('hamburgerBtn');
   var sidebarOverlay = document.getElementById('sidebarOverlay');
-  
+
   function toggleSidebar() {
     sidebar.classList.toggle('open');
     sidebarOverlay.classList.toggle('active');
     hamburgerBtn.classList.toggle('active');
   }
-  
+
   function closeSidebar() {
     sidebar.classList.remove('open');
     sidebarOverlay.classList.remove('active');
     hamburgerBtn.classList.remove('active');
   }
-  
+
   hamburgerBtn.addEventListener('click', toggleSidebar);
   sidebarOverlay.addEventListener('click', closeSidebar);
-  
+
   document.querySelectorAll('.nav-link').forEach(function (link) {
     link.addEventListener('click', closeSidebar);
   });
@@ -72,6 +72,7 @@ function renderPageContent(page) {
     Stats.renderProductCurve();
     UI.renderStatsCalendar();
   }
+  if (page === 'stock') UI.renderStock();
 }
 
 window.Navigation = {

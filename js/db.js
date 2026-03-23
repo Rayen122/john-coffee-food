@@ -26,7 +26,9 @@ const STORES = {
   payments: 'payments',
   settings: 'settings',
   users: 'users',
-  credits: 'credits'
+  credits: 'credits',
+  stock: 'stock',
+  stockMovements: 'stockMovements'
 };
 
 /**

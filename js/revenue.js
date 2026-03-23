@@ -104,28 +104,53 @@ async function getHistoryByDay() {
     return o.status === Orders.ORDER_STATUS.PAID && o.closedAt;
   });
 
-  // Group orders by calendar day
+  // Group orders by calendar day AND session time
   var sessions = {};
   closedOrders.forEach(function (o) {
     var dateObj = new Date(o.closedAt);
     // Format YYYY-MM-DD
     var dayKey = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + String(dateObj.getDate()).padStart(2, '0');
 
-    if (!sessions[dayKey]) {
-      sessions[dayKey] = {
+    // Determine session based on closure time
+    var hour = dateObj.getHours();
+    var sessionType = hour < 15 ? 'matin' : 'soir'; // 8h-15h = matin, 15h+ = soir
+    var sessionKey = dayKey + '_' + sessionType;
+
+    if (!sessions[sessionKey]) {
+      sessions[sessionKey] = {
         dateString: dayKey, // e.g., '2023-10-25'
+        sessionType: sessionType, // 'matin' or 'soir'
+        sessionTime: sessionType === 'matin' ? '8h-15h' : '15h-fermeture',
         total: 0,
         ordersCount: 0,
-        orders: []
+        orders: [],
+        closedAt: o.closedAt // Keep original closure time for sorting
       };
     }
-    sessions[dayKey].total += o.total;
-    sessions[dayKey].ordersCount++;
-    sessions[dayKey].orders.push(o);
+    sessions[sessionKey].total += o.total;
+    sessions[sessionKey].ordersCount++;
+    sessions[sessionKey].orders.push(o);
+  });
+
+  // Group sessions by day for calendar display
+  var dayGroups = {};
+  Object.values(sessions).forEach(function(session) {
+    var dayKey = session.dateString;
+    if (!dayGroups[dayKey]) {
+      dayGroups[dayKey] = {
+        dateString: dayKey,
+        sessions: [],
+        total: 0,
+        ordersCount: 0
+      };
+    }
+    dayGroups[dayKey].sessions.push(session);
+    dayGroups[dayKey].total += session.total;
+    dayGroups[dayKey].ordersCount += session.ordersCount;
   });
 
   // Convert to array and sort by date descending
-  var history = Object.values(sessions).sort(function (a, b) {
+  var history = Object.values(dayGroups).sort(function (a, b) {
     return new Date(b.dateString) - new Date(a.dateString);
   });
 

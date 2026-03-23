@@ -27,10 +27,10 @@ async function renderProductCurve() {
     const currentName = window.getCurrentUserName ? window.getCurrentUserName() : '';
 
     const paidOrders = allOrders.filter(o => {
-        if (o.status !== Orders.ORDER_STATUS.PAID || !o.paidAt) return false;
+        if (o.status !== Orders.ORDER_STATUS.PAID || !o.closedAt) return false; // Use closedAt like calendar
 
-        // Date filter
-        const d = new Date(o.paidAt);
+        // Date filter - use closedAt like calendar
+        const d = new Date(o.closedAt);
         if (!(d >= startDate && d <= endDate)) return false;
 
         // Role filter: servers only see their own orders
@@ -39,25 +39,42 @@ async function renderProductCurve() {
         return true;
     });
 
-    // Grouping by "Session" (Clôture)
-    const sessionsMap = {}; // { sessionKey: { revenue: 0, qty: 0, date: Date } }
+    // Grouping by Calendar Day with session support (like calendar)
+    const dailyMap = {}; // { dateKey: { revenue: 0, qty: 0, date: Date, sessions: [] } }
 
     paidOrders.forEach(o => {
-        const key = o.closedAt || 'open';
-        if (!sessionsMap[key]) {
-            sessionsMap[key] = {
+        const orderDate = new Date(o.closedAt); // Use closedAt like calendar
+        const dateKey = orderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        
+        // Determine session based on closure time (same logic as calendar)
+        const hour = orderDate.getHours();
+        const sessionType = hour < 15 ? 'matin' : 'soir'; // 8h-15h = matin, 15h+ = soir
+        
+        if (!dailyMap[dateKey]) {
+            dailyMap[dateKey] = {
                 revenue: 0,
                 qty: 0,
-                date: new Date(o.paidAt)
+                date: orderDate,
+                sessions: {}
             };
         }
-        sessionsMap[key].revenue += (parseFloat(o.total) || 0);
+        
+        if (!dailyMap[dateKey].sessions[sessionType]) {
+            dailyMap[dateKey].sessions[sessionType] = {
+                revenue: 0,
+                qty: 0
+            };
+        }
+        
+        const orderTotal = parseFloat(o.total) || 0;
+        dailyMap[dateKey].revenue += orderTotal;
+        dailyMap[dateKey].sessions[sessionType].revenue += orderTotal;
     });
 
     const paidOrdersMap = {};
     paidOrders.forEach(o => paidOrdersMap[o.id] = o);
 
-    // Process items for session quantities and product breakdown
+    // Process items for daily quantities and product breakdown
     const allItems = await CafeDB.getAll(CafeDB.STORES.orderItems);
     const allMenuProducts = await Products.getAll();
     const productStats = {};
@@ -66,11 +83,19 @@ async function renderProductCurve() {
     allItems.forEach(item => {
         const order = paidOrdersMap[item.orderId];
         if (order) {
-            const key = order.closedAt || 'open';
+            const orderDate = new Date(order.closedAt); // Use closedAt like calendar
+            const dateKey = orderDate.toISOString().split('T')[0];
+            const hour = orderDate.getHours();
+            const sessionType = hour < 15 ? 'matin' : 'soir';
             const iQty = parseFloat(item.quantity) || 0;
             const iSubTotal = parseFloat(item.subTotal) || 0;
 
-            if (sessionsMap[key]) sessionsMap[key].qty += iQty;
+            if (dailyMap[dateKey]) {
+                dailyMap[dateKey].qty += iQty;
+                if (dailyMap[dateKey].sessions[sessionType]) {
+                    dailyMap[dateKey].sessions[sessionType].qty += iQty;
+                }
+            }
 
             if (!productStats[item.productName]) {
                 productStats[item.productName] = { qty: 0, revenue: 0 };
@@ -80,21 +105,21 @@ async function renderProductCurve() {
         }
     });
 
-    // Prepare Chart Data
-    const sortedKeys = Object.keys(sessionsMap).sort((a, b) => sessionsMap[a].date - sessionsMap[b].date);
-    const labels = sortedKeys.map(k => sessionsMap[k].date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
-    const revenueData = sortedKeys.map(k => sessionsMap[k].revenue);
-    const quantityData = sortedKeys.map(k => sessionsMap[k].qty);
+    // Prepare Chart Data (by day)
+    const sortedKeys = Object.keys(dailyMap).sort((a, b) => new Date(a) - new Date(b));
+    const labels = sortedKeys.map(k => dailyMap[k].date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+    const revenueData = sortedKeys.map(k => dailyMap[k].revenue);
+    const quantityData = sortedKeys.map(k => dailyMap[k].qty);
 
-    // Summary Calculations
+    // Summary Calculations - Find best day by REVENUE (not quantity)
     let totalMonthRev = 0;
-    let maxSessQty = 0;
-    let bestSess = null;
+    let maxDayRevenue = 0;
+    let bestDay = null;
     sortedKeys.forEach(k => {
-        totalMonthRev += sessionsMap[k].revenue;
-        if (sessionsMap[k].qty > maxSessQty) {
-            maxSessQty = sessionsMap[k].qty;
-            bestSess = sessionsMap[k];
+        totalMonthRev += dailyMap[k].revenue;
+        if (dailyMap[k].revenue > maxDayRevenue) {
+            maxDayRevenue = dailyMap[k].revenue;
+            bestDay = dailyMap[k];
         }
     });
 
@@ -118,15 +143,15 @@ async function renderProductCurve() {
     if (elTotal) elTotal.textContent = UI.formatPrice(totalMonthRev);
     if (elBestP) elBestP.textContent = bestProdName && maxProdQty > 0 ? `${bestProdName} (${maxProdQty})` : '-';
     if (elBestD) {
-        if (bestSess && maxSessQty > 0) {
-            const dStr = bestSess.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-            elBestD.innerHTML = `${dStr}<br><span style="font-size:0.85rem; opacity:0.8; font-weight:normal;">${maxSessQty} produits (${UI.formatPrice(bestSess.revenue)})</span>`;
+        if (bestDay && maxDayRevenue > 0) {
+            const dStr = bestDay.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+            elBestD.innerHTML = `${dStr}<br><span style="font-size:0.85rem; opacity:0.8; font-weight:normal;">${bestDay.qty} produits (${UI.formatPrice(bestDay.revenue)})</span>`;
         } else {
             elBestD.textContent = '-';
         }
     }
 
-    document.getElementById('statsTitle').textContent = `Ventes par séance - ${period === 'current_month' ? 'Mois en cours' : 'Mois dernier'}`;
+    document.getElementById('statsTitle').textContent = `Ventes par jour - ${period === 'current_month' ? 'Mois en cours' : 'Mois dernier'}`;
 
     // Breakdown Table
     let tableHtml = '<table class="revenue-table"><thead><tr><th>Produit</th><th>Qté</th><th>Recette</th></tr></thead><tbody>';

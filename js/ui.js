@@ -75,18 +75,18 @@ window.UI = {
   showConfirm: showConfirm,
   openModal: openModal,
   closeModal: closeModal,
-  
+
   // Délégation aux modules spécialisés
-  renderTables: function() { return UITables.renderTables(); },
-  renderMenu: function() { return UIMenu.renderMenu(); },
-  renderHistory: function() { return UIHistory.renderHistory(); },
-  renderHistoryFilters: function() { return UIHistory.renderHistoryFilters(); },
-  openOrderForTable: function(tableId, tableName) { return UIOrders.openOrderForTable(tableId, tableName); },
-  showOrderPage: function(tableName) { return UIOrders.showOrderPage(tableName); },
-  renderOrderItems: function() { return UIOrders.renderOrderItems(); },
-  renderOrderProducts: function() { return UIOrders.renderOrderProducts(); },
-  showOrderDetail: function(orderId) { return UIHistory.showOrderDetail(orderId); },
-  
+  renderTables: function () { return UITables.renderTables(); },
+  renderMenu: function () { return UIMenu.renderMenu(); },
+  renderHistory: function () { return UIHistory.renderHistory(); },
+  renderHistoryFilters: function () { return UIHistory.renderHistoryFilters(); },
+  openOrderForTable: function (tableId, tableName) { return UIOrders.openOrderForTable(tableId, tableName); },
+  showOrderPage: function (tableName) { return UIOrders.showOrderPage(tableName); },
+  renderOrderItems: function () { return UIOrders.renderOrderItems(); },
+  renderOrderProducts: function () { return UIOrders.renderOrderProducts(); },
+  showOrderDetail: function (orderId) { return UIHistory.showOrderDetail(orderId); },
+
   // Propriétés
   get currentOrderId() { return currentOrderId; },
   set currentOrderId(value) { currentOrderId = value; },
@@ -131,6 +131,43 @@ function renderDashboard() {
       html += '<a href="#" class="btn btn-secondary" data-page="backup">Sauvegarde</a>';
     }
     document.getElementById('dashboardQuickLinks').innerHTML = html;
+
+    // Phase 2: Stock Alerts Widget
+    if (isAdmin && window.Stock) {
+      Stock.getLowStock().then(function (lowItems) {
+        var alertsDiv = document.getElementById('dashboardStockAlerts');
+        if (!alertsDiv) return;
+
+        if (lowItems && lowItems.length > 0) {
+          var alertHtml = '<div style="background:rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius); padding:1rem;">';
+          alertHtml += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">';
+          alertHtml += '<h3 style="margin:0; color:#ef4444; font-size:1.1rem; display:flex; align-items:center; gap:0.5rem;">⚠️ Alertes Stock</h3>';
+          alertHtml += '<a href="#" onclick="UI.showPage(\'stock\')" style="font-size:0.85rem; color:var(--accent); text-decoration:none; font-weight:600;">Gérer tout →</a>';
+          alertHtml += '</div>';
+          alertHtml += '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.75rem;">';
+
+          lowItems.forEach(function (item) {
+            var status = Stock.getStatus(item);
+            var statusIcon = status === 'out' ? '❌' : '⚠️';
+            var statusColor = status === 'out' ? '#ef4444' : '#f59e0b';
+            var statusLabel = status === 'out' ? 'Rupture' : 'Stock bas';
+
+            alertHtml += '<div style="background:var(--bg-card); padding:0.75rem; border-radius:var(--radius-sm); border-left:4px solid ' + statusColor + '; box-shadow:var(--shadow-sm);">';
+            alertHtml += '<div style="font-weight:600; font-size:0.95rem; margin-bottom:0.25rem;">' + item.name + '</div>';
+            alertHtml += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+            alertHtml += '<span style="font-size:0.85rem; opacity:0.7;">' + item.quantity + ' ' + (item.unit || '') + '</span>';
+            alertHtml += '<span style="font-size:0.75rem; font-weight:700; color:' + statusColor + ';">' + statusIcon + ' ' + statusLabel + '</span>';
+            alertHtml += '</div>';
+            alertHtml += '</div>';
+          });
+
+          alertHtml += '</div></div>';
+          alertsDiv.innerHTML = alertHtml;
+        } else {
+          alertsDiv.innerHTML = ''; // Hide if no alerts
+        }
+      });
+    }
   });
 }
 
@@ -553,7 +590,7 @@ function renderHistory() {
       orders.forEach(function (o) {
         var date = o.paidAt ? new Date(o.paidAt) : new Date(o.createdAt);
         var dateStr = date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        
+
         // Afficher la durée d'occupation si disponible
         var occupationInfo = '';
         if (o.occupationDuration !== null && o.occupationDuration !== undefined) {
@@ -565,7 +602,7 @@ function renderHistory() {
             occupationInfo = ' · ⏱️ ' + hours + 'h' + (minutes > 0 ? minutes.toString().padStart(2, '0') : '');
           }
         }
-        
+
         html += '<div class="history-item" data-order-id="' + o.id + '">';
         html += '<span class="order-table">' + (tableMap[o.tableId] || o.tableId) + '</span>';
         html += '<span class="order-date">' + dateStr + occupationInfo + '</span>';
@@ -952,7 +989,19 @@ function renderStatsCalendar() {
       html += `<div class="day-number">${i}</div>`;
       if (dayData) {
         html += `<div class="credit-dot" style="background: var(--primary);"></div>`;
-        html += `<div style="font-size: 0.75rem; font-weight: 600; color: var(--primary); margin-top: 4px;">${formatPrice(dayData.total)}</div>`;
+
+        // Show multiple sessions if they exist
+        if (dayData.sessions && dayData.sessions.length > 1) {
+          // Multiple sessions - show each separately
+          dayData.sessions.forEach(function (session, index) {
+            var sessionColor = session.sessionType === 'matin' ? '#10B981' : '#F59E0B'; // Green for morning, Orange for evening
+            html += `<div style="font-size: 0.65rem; font-weight: 600; color: ${sessionColor}; margin-top: 2px;">${session.sessionTime}</div>`;
+            html += `<div style="font-size: 0.7rem; font-weight: 600; color: ${sessionColor};">${formatPrice(session.total)}</div>`;
+          });
+        } else {
+          // Single session - show total
+          html += `<div style="font-size: 0.75rem; font-weight: 600; color: var(--primary); margin-top: 4px;">${formatPrice(dayData.total)}</div>`;
+        }
       }
       html += `</div>`;
     }
@@ -1061,8 +1110,8 @@ document.addEventListener('DOMContentLoaded', function () {
  */
 async function showDayRevenueDetail(dateString) {
   var history = await Revenue.getHistoryByDay();
-  var sess = history.find(function (s) { return s.dateString === dateString; });
-  if (!sess) return;
+  var dayData = history.find(function (s) { return s.dateString === dateString; });
+  if (!dayData) return;
 
   // Création objet Date à midi pour éviter décalage fuseau horaire
   var dateParts = dateString.split('-');
@@ -1077,7 +1126,57 @@ async function showDayRevenueDetail(dateString) {
 
   document.getElementById('clotureDetailDate').textContent = dateStr;
 
-  // Calculate By Category and Best Product for this aggregated session
+  // Check if multiple sessions exist
+  var hasMultipleSessions = dayData.sessions && dayData.sessions.length > 1;
+
+  if (hasMultipleSessions) {
+    // Show sessions separately
+    var sessionsHtml = '';
+    var totalByCategory = {};
+    var totalProductCount = {};
+
+    dayData.sessions.forEach(function (session, index) {
+      var sessionColor = session.sessionType === 'matin' ? '#10B981' : '#F59E0B';
+      var sessionIcon = session.sessionType === 'matin' ? '🌅' : '🌙';
+
+      sessionsHtml += '<div style="border: 2px solid ' + sessionColor + '; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: rgba(' + (session.sessionType === 'matin' ? '16, 185, 129' : '245, 158, 11') + ', 0.05);">';
+      sessionsHtml += '<h4 style="color: ' + sessionColor + '; margin: 0 0 0.5rem 0; display: flex; align-items: center; gap: 0.5rem;">';
+      sessionsHtml += sessionIcon + ' ' + session.sessionTime + '</h4>';
+      sessionsHtml += '<div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">';
+      sessionsHtml += '<span><strong>Recette:</strong> ' + formatPrice(session.total) + '</span>';
+      sessionsHtml += '<span><strong>Commandes:</strong> ' + session.ordersCount + '</span>';
+      sessionsHtml += '</div>';
+
+      // Orders for this session
+      sessionsHtml += '<div style="font-size: 0.9rem; color: var(--text-secondary);">';
+      var sortedOrders = [...session.orders].sort((a, b) => new Date(a.paidAt) - new Date(b.paidAt));
+      sortedOrders.forEach(function (o) {
+        var displayName = o.tableName || o.staffName || 'Commande';
+        sessionsHtml += new Date(o.paidAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + ' - ' + displayName + ' (' + formatPrice(o.total) + ') ';
+      });
+      sessionsHtml += '</div>';
+      sessionsHtml += '</div>';
+    });
+
+    document.getElementById('clotureDetailSummary').innerHTML = sessionsHtml;
+
+    // Aggregate all sessions for category and product stats
+    var allOrders = [];
+    dayData.sessions.forEach(function (session) {
+      allOrders = allOrders.concat(session.orders);
+    });
+
+  } else {
+    // Single session - use existing logic
+    var session = dayData.sessions ? dayData.sessions[0] : dayData;
+    var allOrders = session.orders || dayData.orders || [];
+
+    var sumHtml = '<div class="stat-card"><span class="stat-label">Recette Totale</span><div class="stat-value">' + formatPrice(dayData.total) + '</div></div>'
+      + '<div class="stat-card"><span class="stat-label">Commandes</span><div class="stat-value">' + dayData.ordersCount + '</div></div>';
+    document.getElementById('clotureDetailSummary').innerHTML = sumHtml;
+  }
+
+  // Calculate By Category and Best Product for all orders of the day
   var byCategory = {};
   var productCount = {};
   var [allItems, allProducts] = await Promise.all([
@@ -1088,12 +1187,12 @@ async function showDayRevenueDetail(dateString) {
   var productsMap = {};
   allProducts.forEach(function (p) { productsMap[p.id] = p; });
 
-  var sessionOrderIds = {};
-  sess.orders.forEach(function (o) { sessionOrderIds[o.id] = true; });
+  var dayOrderIds = {};
+  allOrders.forEach(function (o) { dayOrderIds[o.id] = true; });
 
   for (var i = 0; i < allItems.length; i++) {
     var item = allItems[i];
-    if (sessionOrderIds[item.orderId]) {
+    if (dayOrderIds[item.orderId]) {
       var product = productsMap[item.productId];
       var cat = product ? product.category : 'Autre';
       if (!byCategory[cat]) {
@@ -1112,16 +1211,9 @@ async function showDayRevenueDetail(dateString) {
   }
   sortedProducts.sort((a, b) => b.quantity - a.quantity);
 
-  // Summary Stats
-  var sumHtml = '<div class="stat-card"><span class="stat-label">Recette Totale</span><div class="stat-value">' + formatPrice(sess.total) + '</div></div>'
-    + '<div class="stat-card"><span class="stat-label">Commandes</span><div class="stat-value">' + sess.ordersCount + '</div></div>'
-    + '<div class="stat-card"><span class="stat-label">Produits vus</span><div class="stat-value">' + Object.keys(productCount).length + '</div></div>';
-  document.getElementById('clotureDetailSummary').innerHTML = sumHtml;
-
-  // Orders Table - aggregated
+  // Orders Table - all orders of the day
   var ordersHtml = '<table class="revenue-table"><thead><tr><th>Heure</th><th>N°</th><th>Total</th></tr></thead><tbody>';
-  // Sort orders by time ascending
-  var sortedOrders = [...sess.orders].sort((a, b) => new Date(a.paidAt) - new Date(b.paidAt));
+  var sortedOrders = [...allOrders].sort((a, b) => new Date(a.paidAt) - new Date(b.paidAt));
   sortedOrders.forEach(function (o) {
     var displayName = o.tableName || o.staffName || 'Commande';
     ordersHtml += '<tr><td>' + new Date(o.paidAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) + '</td>'
@@ -1949,6 +2041,355 @@ if (_mergeNextBtn) {
 
 document.getElementById('openTransferModalBtn').onclick = openTransferModal;
 
+// ==================== GESTION DU STOCK ====================
+
+var _allStockItems = [];
+
+function renderStock() {
+  Stock.getAll().then(function (items) {
+    _allStockItems = items;
+
+    // Populate category filter
+    var catSel = document.getElementById('stockCategoryFilter');
+    if (catSel) {
+      var cats = [''];
+      items.forEach(function (i) { if (i.category && cats.indexOf(i.category) === -1) cats.push(i.category); });
+      catSel.innerHTML = '<option value="">Toutes les catégories</option>' +
+        cats.filter(function (c) { return c; }).map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+    }
+
+    // Also populate modal category select
+    var modalCat = document.getElementById('stockItemCategory');
+    if (modalCat) {
+      modalCat.innerHTML = Stock.CATEGORIES.map(function (c) {
+        return '<option value="' + c + '">' + c + '</option>';
+      }).join('');
+    }
+
+    renderStockSummary(items);
+    renderStockGrid(items);
+  });
+}
+
+function renderStockSummary(items) {
+  var total = items.length;
+  var ok = items.filter(function (i) { return Stock.getStatus(i) === 'ok'; }).length;
+  var low = items.filter(function (i) { return Stock.getStatus(i) === 'low'; }).length;
+  var out = items.filter(function (i) { return Stock.getStatus(i) === 'out'; }).length;
+  
+  var totalValuation = items.reduce(function(sum, i) {
+    return sum + ((i.quantity || 0) * (i.costPrice || 0));
+  }, 0);
+
+  var el = document.getElementById('stockSummary');
+  if (!el) return;
+  el.innerHTML =
+    '<span style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:0.9rem;">📦 ' + total + ' articles</span>' +
+    '<span style="background:var(--accent);color:#fff;border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:0.9rem;font-weight:600;">💰 Valeur : ' + formatPrice(totalValuation) + '</span>' +
+    (ok ? '<span style="background:#dcfce7;color:#166534;border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:0.9rem;">✅ ' + ok + ' OK</span>' : '') +
+    (low ? '<span style="background:#fef9c3;color:#854d0e;border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:0.9rem;">⚠️ ' + low + ' Bas</span>' : '') +
+    (out ? '<span style="background:#fee2e2;color:#991b1b;border-radius:var(--radius);padding:0.4rem 0.9rem;font-size:0.9rem;">❌ ' + out + ' Rupture</span>' : '');
+}
+
+function renderStockGrid(items) {
+  var grid = document.getElementById('stockGrid');
+  if (!grid) return;
+  if (items.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;opacity:0.5;">Aucun article en stock. Cliquez sur « + Ajouter un article » pour commencer.</div>';
+    return;
+  }
+  var html = '';
+  items.forEach(function (item) {
+    var status = Stock.getStatus(item);
+    var badgeStyle = status === 'ok' ? 'background:#dcfce7;color:#166534;' : status === 'low' ? 'background:#fef9c3;color:#854d0e;' : 'background:#fee2e2;color:#991b1b;';
+    var badgeLabel = status === 'ok' ? '✅ OK' : status === 'low' ? '⚠️ Stock bas' : '❌ Rupture';
+    var updatedStr = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('fr-FR') : '—';
+    var itemValuation = (item.quantity || 0) * (item.costPrice || 0);
+
+    html += '<div class="product-card" style="position:relative;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">' +
+      '<div>' +
+      '<div style="font-weight:700;font-size:1.05rem;">' + item.name + '</div>' +
+      '<div style="font-size:0.8rem;opacity:0.6;margin-top:0.2rem;">' + (item.category || '—') + '</div>' +
+      '</div>' +
+      '<span style="font-size:0.75rem;padding:0.3rem 0.6rem;border-radius:999px;font-weight:600;' + badgeStyle + '">' + badgeLabel + '</span>' +
+      '</div>' +
+      '<div style="display:flex; justify-content:space-between; align-items:baseline;">' +
+      '<div style="font-size:2rem;font-weight:800;color:var(--accent);">' + (item.quantity != null ? item.quantity : '—') + ' <span style="font-size:1rem;opacity:0.7;">' + (item.unit || '') + '</span></div>' +
+      (item.costPrice ? '<div style="font-size:0.9rem; font-weight:600; opacity:0.8;">Σ ' + formatPrice(itemValuation) + '</div>' : '') +
+      '</div>' +
+      '<div style="font-size:0.8rem;opacity:0.55;margin-bottom:0.75rem;">' + 
+      (item.costPrice ? 'P.A: ' + formatPrice(item.costPrice) + ' · ' : '') + 
+      'Seuil: ' + (item.minQuantity || 0) + ' ' + (item.unit || '') + ' · MàJ: ' + updatedStr + '</div>' +
+      '<div style="display:flex; gap:0.4rem; margin-bottom:0.75rem;">' +
+      '<button type="button" class="btn btn-secondary btn-sm" style="flex:1; padding:0.3rem;" onclick="UI.quickAddStock(\'' + item.id + '\', 1)" title="Ajouter +1">+1</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" style="flex:1; padding:0.3rem;" onclick="UI.quickAddStock(\'' + item.id + '\', 10)" title="Ajouter +10">+10</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:0.5rem; border-top:1px solid var(--border); padding-top:0.75rem;">' +
+      '<button type="button" class="btn btn-secondary btn-sm" style="flex:1;" onclick="UI.openStockModal(\'' + item.id + '\')">✏️ Modifier</button>' +
+      '<button type="button" class="btn btn-danger btn-sm" onclick="UI.deleteStockItem(\'' + item.id + '\', \'' + item.name.replace(/'/g, "\\'") + '\')" style="padding:0 0.75rem;">🗑</button>' +
+      '</div></div>';
+  });
+  grid.innerHTML = html;
+}
+
+function quickAddStock(id, qty) {
+  Stock.get(id).then(function (item) {
+    if (!item) return;
+    item.quantity = (item.quantity || 0) + qty;
+    Stock.save(item, 'Réapprovisionnement rapide (+' + qty + ')').then(function () {
+      renderStock();
+    });
+  });
+}
+
+function exportStockExcel() {
+  Stock.getAll().then(function (items) {
+    if (!items || items.length === 0) {
+      alert('Aucun article à exporter.');
+      return;
+    }
+
+    var date = new Date().toLocaleDateString('fr-FR');
+    var fileName = 'Inventaire-Stock-' + date.replace(/\//g, '-') + '.xls';
+
+    // HTML XML Template for Excel with some basic CSS styling
+    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    html += '<head><meta charset="UTF-8">\x3C!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Inventaire Stock</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--\x3E';
+    html += '<style>';
+    html += 'table { border-collapse: collapse; font-family: Segoe UI, sans-serif; }';
+    html += 'th { background-color: #f3f4f6; border: 1px solid #d1d5db; padding: 10px; font-weight: bold; text-align: left; }';
+    html += 'td { border: 1px solid #d1d5db; padding: 8px; }';
+    html += '.status-ok { background-color: #dcfce7; color: #166534; font-weight: bold; text-align: center; }';
+    html += '.status-low { background-color: #fef9c3; color: #854d0e; font-weight: bold; text-align: center; }';
+    html += '.status-out { background-color: #fee2e2; color: #991b1b; font-weight: bold; text-align: center; }';
+    html += '.header { font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #1f2937; }';
+    html += '</style></head><body>';
+    html += '<div class="header">📋 Inventaire Complet du Stock - ' + date + '</div>';
+    html += '<table><thead><tr>';
+    html += '<th>Article</th><th>Catégorie</th><th>Quantité</th><th>Unité</th><th>Seuil</th><th>Prix Achat</th><th>Valeur Totale</th><th>Statut</th>';
+    html += '</tr></thead><tbody>';
+
+    items.sort(function(a, b) {
+      return (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name);
+    }).forEach(function (item) {
+      var status = Stock.getStatus(item);
+      var statusClass = 'status-' + status;
+      var statusLabel = status === 'ok' ? 'En Stock' : status === 'low' ? 'Stock Bas' : 'Rupture';
+      var valuation = (item.quantity || 0) * (item.costPrice || 0);
+
+      html += '<tr>';
+      html += '<td>' + item.name + '</td>';
+      html += '<td>' + (item.category || '-') + '</td>';
+      html += '<td style="text-align:right;">' + (item.quantity || 0) + '</td>';
+      html += '<td>' + (item.unit || '') + '</td>';
+      html += '<td style="text-align:right;">' + (item.minQuantity || 0) + '</td>';
+      html += '<td style="text-align:right;">' + (item.costPrice || 0).toFixed(2) + ' DT</td>';
+      html += '<td style="text-align:right; font-weight:bold;">' + valuation.toFixed(2) + ' DT</td>';
+      html += '<td class="' + statusClass + '">' + statusLabel + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></body></html>';
+
+    var blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+}
+
+window.UI_filterStock = function () {
+  var q = (document.getElementById('stockSearch') ? document.getElementById('stockSearch').value.toLowerCase() : '');
+  var cat = (document.getElementById('stockCategoryFilter') ? document.getElementById('stockCategoryFilter').value : '');
+  var st = (document.getElementById('stockStatusFilter') ? document.getElementById('stockStatusFilter').value : '');
+  var filtered = _allStockItems.filter(function (item) {
+    var matchQ = !q || item.name.toLowerCase().includes(q) || (item.category && item.category.toLowerCase().includes(q));
+    var matchCat = !cat || item.category === cat;
+    var matchSt = !st || Stock.getStatus(item) === st;
+    return matchQ && matchCat && matchSt;
+  });
+  renderStockSummary(filtered);
+  renderStockGrid(filtered);
+};
+
+function openStockModal(itemId) {
+  var modal = document.getElementById('stockModal');
+  if (!modal) return;
+
+  document.getElementById('stockItemId').value = '';
+  document.getElementById('stockItemQuantity').value = '';
+  document.getElementById('stockItemUnit').value = '';
+  document.getElementById('stockItemMin').value = '';
+  document.getElementById('stockItemCost').value = '';
+
+  document.getElementById('stockModalTitle').textContent = itemId ? "Modifier l'article" : 'Ajouter un article';
+
+  // Populate categories for the reference table display
+  var catSel = document.getElementById('stockItemCategory');
+  if (catSel && catSel.options.length <= 1) {
+    catSel.innerHTML = Stock.CATEGORIES.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+  }
+
+  // Populate dynamic select for stockItemName
+  var nameSel = document.getElementById('stockItemName');
+  Promise.all([
+    Products.getAll(),
+    Settings.get('categories')
+  ]).then(function (results) {
+    var products = results[0];
+    var catsStr = results[1] || '';
+
+    // Get unique categories from settings
+    var cats = catsStr.split('\n').filter(function (c) { return c.trim(); }).map(function (c) { return c.trim(); });
+    // Add any category from products not in settings
+    if (products) {
+      products.forEach(function (p) {
+        if (p.category && cats.indexOf(p.category) === -1) cats.push(p.category);
+      });
+    }
+    cats.sort();
+
+    var options = '<option value="">Sélectionner un produit...</option>';
+
+    // Section 2: Products grouped by Category
+    cats.forEach(function (catName) {
+      var catProducts = products.filter(function(p) { return p.category === catName; });
+      if (catProducts.length > 0) {
+        options += '<optgroup label="─── ' + catName.toUpperCase() + ' ───">';
+        catProducts.sort(function(a, b) { return a.name.localeCompare(b.name); }).forEach(function(p) {
+          options += '<option value="' + p.name + '">' + p.name + '</option>';
+        });
+        options += '</optgroup>';
+      }
+    });
+
+    // Products without category
+    var noCatProducts = products.filter(function(p) { return !p.category; });
+    if (noCatProducts.length > 0) {
+      options += '<optgroup label="─── SANS CATÉGORIE ───">';
+      noCatProducts.sort(function(a, b) { return a.name.localeCompare(b.name); }).forEach(function(p) {
+        options += '<option value="' + p.name + '">' + p.name + '</option>';
+      });
+      options += '</optgroup>';
+    }
+
+    nameSel.innerHTML = options;
+
+    // Load data if editing
+    if (itemId) {
+      Stock.get(itemId).then(function (item) {
+        if (!item) return;
+        document.getElementById('stockItemId').value = item.id;
+        document.getElementById('stockItemQuantity').value = item.quantity != null ? item.quantity : '';
+        document.getElementById('stockItemUnit').value = item.unit || '';
+        document.getElementById('stockItemMin').value = item.minQuantity != null ? item.minQuantity : '';
+        document.getElementById('stockItemCost').value = item.costPrice != null ? item.costPrice : '';
+
+        if (catSel) catSel.value = item.category || '';
+
+        // Find existing value in dropdown, if not create a temporary option so it isn't lost
+        var existingValue = item.name || '';
+        var optionExists = Array.from(nameSel.options).some(function (opt) { return opt.value === existingValue; });
+        if (!optionExists && existingValue) {
+          nameSel.innerHTML += '<option value="' + existingValue + '">' + existingValue + ' (Ancien)</option>';
+        }
+        nameSel.value = existingValue;
+      });
+    }
+
+    modal.style.display = 'flex';
+  });
+}
+
+function closeStockModal() {
+  var modal = document.getElementById('stockModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function saveStockItem() {
+  var name = document.getElementById('stockItemName').value.trim();
+  if (!name) { alert('Veuillez sélectionner un article ou une catégorie.'); return; }
+
+  var qty = parseFloat(document.getElementById('stockItemQuantity').value);
+  if (isNaN(qty) || qty < 0) { alert('Quantité invalide.'); return; }
+
+  // If user selected a "[Catégorie] X", auto-fill the category property and save the name.
+  var cat = document.getElementById('stockItemCategory').value;
+  var matchCat = name.match(/^\[Catégorie\]\s*(.*)$/);
+  if (matchCat) {
+    name = matchCat[1];
+    cat = matchCat[1];
+  } else {
+    // Maybe try to auto-detect category if it's a known product, but relying on their input is fine
+  }
+
+  var item = {
+    id: document.getElementById('stockItemId').value || undefined,
+    name: name,
+    category: cat,
+    quantity: qty,
+    unit: document.getElementById('stockItemUnit').value.trim(),
+    minQuantity: parseFloat(document.getElementById('stockItemMin').value) || 0,
+    costPrice: parseFloat(document.getElementById('stockItemCost').value) || 0
+  };
+
+  Stock.save(item).then(function () {
+    closeStockModal();
+    renderStock();
+  });
+}
+
+function deleteStockItem(id, name) {
+  showConfirm('Supprimer l\'article', 'Supprimer « ' + name + ' » du stock ?', function () {
+    Stock.delete(id).then(function () {
+      renderStock();
+    });
+  });
+}
+
+function openStockMovementsModal() {
+  var modal = document.getElementById('stockMovementsModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    renderStockMovements();
+  }
+}
+
+function closeStockMovementsModal() {
+  var modal = document.getElementById('stockMovementsModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderStockMovements() {
+  Stock.getMovements(100).then(function (movements) {
+    var html = '';
+    if (!movements || movements.length === 0) {
+      html = '<tr><td colspan="5" style="text-align:center; padding:2rem; opacity:0.5;">Aucun mouvement enregistré</td></tr>';
+    } else {
+      movements.forEach(function (m) {
+        var date = new Date(m.timestamp);
+        var dateStr = date.toLocaleDateString() + ' ' + date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        var color = m.type === 'in' ? '#10b981' : '#ef4444';
+        var prefix = m.type === 'in' ? '+' : '-';
+
+        html += '<tr style="border-bottom:1px solid var(--border);">';
+        html += '<td style="padding:0.75rem 0.5rem; font-size:0.8rem; opacity:0.8;">' + dateStr + '</td>';
+        html += '<td style="padding:0.75rem 0.5rem; font-weight:600;">' + m.itemName + '</td>';
+        html += '<td style="padding:0.75rem 0.5rem; font-weight:700; color:' + color + ';">' + prefix + m.quantity + '</td>';
+        html += '<td style="padding:0.75rem 0.5rem; font-style:italic; opacity:0.9;">' + (m.reason || '-') + '</td>';
+        html += '<td style="padding:0.75rem 0.5rem; font-size:0.85rem;">' + (m.user || '-') + '</td>';
+        html += '</tr>';
+      });
+    }
+    document.getElementById('stockMovementsList').innerHTML = html;
+  });
+}
+
 window.UI = {
   showPage: showPage,
   setCafeName: setCafeName,
@@ -1976,6 +2417,17 @@ window.UI = {
   showDayRevenueDetail: showDayRevenueDetail,
   renderStatsCalendar: renderStatsCalendar,
   openDayCredits: openDayCredits,
+  renderStock: renderStock,
+  openStockModal: openStockModal,
+  closeStockModal: closeStockModal,
+  saveStockItem: saveStockItem,
+  deleteStockItem: deleteStockItem,
+  quickAddStock: quickAddStock,
+  exportStockExcel: exportStockExcel,
+  openStockMovementsModal: openStockMovementsModal,
+  closeStockMovementsModal: closeStockMovementsModal,
+  renderStockMovements: renderStockMovements,
+  filterStock: window.UI_filterStock,
   updateOccupationTimers: updateOccupationTimers,
   startOccupationTimer: startOccupationTimer,
   stopOccupationTimer: stopOccupationTimer,
