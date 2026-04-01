@@ -4,22 +4,16 @@
 
 var salesChart = null;
 
-function getPeriodDates(period) {
-    const now = new Date();
-    let startDate, endDate;
-    if (period === 'current_month') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else {
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-    }
+function getPeriodDates() {
+    let year = window.currentStatsYear !== undefined ? window.currentStatsYear : new Date().getFullYear();
+    let month = window.currentStatsMonth !== undefined ? window.currentStatsMonth : new Date().getMonth();
+    let startDate = new Date(year, month, 1);
+    let endDate = new Date(year, month + 1, 0, 23, 59, 59);
     return { startDate, endDate };
 }
 
 async function renderProductCurve() {
-    const period = document.getElementById('statsPeriodFilter').value;
-    const { startDate, endDate } = getPeriodDates(period);
+    const { startDate, endDate } = getPeriodDates();
 
     // Fetch all paid orders in the period
     const allOrders = await Orders.getAll();
@@ -151,7 +145,8 @@ async function renderProductCurve() {
         }
     }
 
-    document.getElementById('statsTitle').textContent = `Ventes par jour - ${period === 'current_month' ? 'Mois en cours' : 'Mois dernier'}`;
+    const monthNameStr = startDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    document.getElementById('statsTitle').textContent = `Ventes par jour - ${monthNameStr.charAt(0).toUpperCase() + monthNameStr.slice(1)}`;
 
     // Breakdown Table
     let tableHtml = '<table class="revenue-table"><thead><tr><th>Produit</th><th>Qté</th><th>Recette</th></tr></thead><tbody>';
@@ -207,8 +202,7 @@ async function renderProductCurve() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const filter = document.getElementById('statsPeriodFilter');
-    if (filter) filter.addEventListener('change', renderProductCurve);
+    // filter logic moved to ui.js
 });
 
 window.Stats = { renderProductCurve: renderProductCurve };

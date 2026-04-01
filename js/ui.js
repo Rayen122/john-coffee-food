@@ -923,8 +923,8 @@ function renderRevenue() {
 }
 
 // === Stats Calendar Logic ===
-let currentStatsYear = new Date().getFullYear();
-let currentStatsMonth = new Date().getMonth();
+window.currentStatsYear = new Date().getFullYear();
+window.currentStatsMonth = new Date().getMonth();
 
 /**
  * Affiche le calendrier des recettes sur la page Statistiques
@@ -936,7 +936,7 @@ function renderStatsCalendar() {
 
   Revenue.getHistoryByDay().then(function (history) {
     // Set month title
-    const dateObj = new Date(currentStatsYear, currentStatsMonth, 1);
+    const dateObj = new Date(window.currentStatsYear, window.currentStatsMonth, 1);
     monthTitle.textContent = dateObj.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
     // Generate calendar days header
@@ -947,9 +947,9 @@ function renderStatsCalendar() {
     });
 
     // Calculate days
-    const firstDayIndex = new Date(currentStatsYear, currentStatsMonth, 1).getDay(); // 0 is Sunday
+    const firstDayIndex = new Date(window.currentStatsYear, window.currentStatsMonth, 1).getDay(); // 0 is Sunday
     const startOffset = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Map to Monday start
-    const daysInMonth = new Date(currentStatsYear, currentStatsMonth + 1, 0).getDate();
+    const daysInMonth = new Date(window.currentStatsYear, window.currentStatsMonth + 1, 0).getDate();
 
     // Map history by date string ('YYYY-MM-DD')
     const historyByDate = {};
@@ -959,7 +959,7 @@ function renderStatsCalendar() {
 
     const todayStr = new Date().toISOString().split('T')[0];
     const currentDateObj = new Date();
-    const isCurrentMonth = currentDateObj.getFullYear() === currentStatsYear && currentDateObj.getMonth() === currentStatsMonth;
+    const isCurrentMonth = currentDateObj.getFullYear() === window.currentStatsYear && currentDateObj.getMonth() === window.currentStatsMonth;
     const currentDay = currentDateObj.getDate();
 
     // Empty cells for offset
@@ -969,7 +969,7 @@ function renderStatsCalendar() {
 
     // Days in month
     for (let i = 1; i <= daysInMonth; i++) {
-      const dateKey = `${currentStatsYear}-${String(currentStatsMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const dateKey = `${window.currentStatsYear}-${String(window.currentStatsMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
       const isToday = dateKey === todayStr;
       const isFuture = isCurrentMonth && i > currentDay;
       const dayData = historyByDate[dateKey];
@@ -1036,23 +1036,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (statsPrevMonthBtn) {
     statsPrevMonthBtn.addEventListener('click', function () {
-      currentStatsMonth--;
-      if (currentStatsMonth < 0) {
-        currentStatsMonth = 11;
-        currentStatsYear--;
+      window.currentStatsMonth--;
+      if (window.currentStatsMonth < 0) {
+        window.currentStatsMonth = 11;
+        window.currentStatsYear--;
       }
       renderStatsCalendar();
+      if (window.Stats && window.Stats.renderProductCurve) window.Stats.renderProductCurve();
     });
   }
 
   if (statsNextMonthBtn) {
     statsNextMonthBtn.addEventListener('click', function () {
-      currentStatsMonth++;
-      if (currentStatsMonth > 11) {
-        currentStatsMonth = 0;
-        currentStatsYear++;
+      window.currentStatsMonth++;
+      if (window.currentStatsMonth > 11) {
+        window.currentStatsMonth = 0;
+        window.currentStatsYear++;
       }
       renderStatsCalendar();
+      if (window.Stats && window.Stats.renderProductCurve) window.Stats.renderProductCurve();
     });
   }
 
